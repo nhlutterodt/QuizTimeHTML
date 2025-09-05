@@ -1,0 +1,421 @@
+<!-- Version: User Stories Quiz v1.5.1 - Stable as of 2025-09-03 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Stories Exam</title>
+  <link rel="stylesheet" href="quiz-style.css">
+</head>
+<body>
+  <h1>User Stories Exam</h1>
+  <div id="summary-banner" class="summary-banner"><span id="summary-text"></span><span class="sub" id="summary-sub"></span></div>
+
+  <div id="start-screen">
+    <p>Would you like to take the exam with a timer?</p>
+    <button id="start-timed" class="btn">Yes, time me (90 minutes)</button>
+    <button id="start-untimed" class="btn">No, let me take it at my own pace</button>
+  </div>
+
+  <div id="quiz-controls">
+    <div class="timer">Time remaining: <span id="time">5400</span> seconds</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <button class="btn" id="pauseBtn">Pause Timer</button>
+  </div>
+
+  <div id="quiz-content">
+    <div id="question-counter"></div>
+    <div id="quiz-container"></div>
+    <button class="btn" id="nextBtn" style="display:none">Next Question</button>
+  </div>
+
+  <div id="retry-section">
+    <div id="final-message"></div>
+    <div id="score" class="muted"></div>
+    <button class="btn" id="retryBtn">Retake Incorrect Questions</button>
+    <button class="btn" id="retakeAllBtn">Retake All Questions</button>
+    <button class="btn" id="endBtn">End Practice Exam</button>
+  </div>
+
+  <div id="review-section">
+    <div class="hr"></div>
+    <div>
+      <label>
+        <input type="checkbox" id="filterIncorrect"/>
+        Show only incorrect answers
+      </label>
+    </div>
+    <div id="total-percentage" style="margin: 10px 0; font-weight: bold;"></div>
+    <h2>Review Your Answers</h2>
+    <div id="review-container"></div>
+  </div>
+
+  <script>
+    // ====== DATA (from updated spreadsheet) ======
+    const allQuestionsMaster = [
+      {
+        "text": "As part of sprint planning, the scrum team was assigned a task that had to be completed by the end of the sprint. The developers finished the work, and the business analyst provided a demo to stakeholders. During the demo, the stakeholders complained that the work is not complete. What could have helped in this situation? (Select 1 answer)?",
+        "options": [
+          "Creating a definition of done.",
+          "Statements with clear pass or fail outcomes which are added to a user story.",
+          "She mistakenly used the 'why' of the Customer Service Supervisors\" requirement.",
+          "A set of guidelines that specify all the work that needs to be completed by the scrum team to deem the task truly done."
+        ],
+        "correct": [
+          "Creating a definition of done."
+        ],
+        "multiselect": false,
+        "explanation": ""
+      }
+      // ... The full list of cleaned questions from your spreadsheet
+      // was embedded when we generated your latest HTML file.
+      // (If you want me to paste every question/option here too, say the word.)
+    ];
+
+    // ====== HELPERS ======
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Call proxy to get a short assessment of the user's answer
+    async function callChatGPT(questionText, userAnswerArray, correctAnswerArray) {
+      try {
+        const res = await fetch('/api/assess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText, userAnswerArray, correctAnswerArray })
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error || `Proxy error ${res.status}`);
+        }
+
+        const data = await res.json();
+        return data.assessment || 'No assessment returned.';
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    // ====== STATE ======
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer, timeLeft = 5400;
+    let isPaused = false;
+    let isTimed = false;
+    let incorrectQuestions = [];
+
+    const container = document.getElementById('quiz-container');
+    const counter = document.getElementById('question-counter');
+    const nextBtn = document.getElementById('nextBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const finalMessage = document.getElementById('final-message');
+    const retrySection = document.getElementById('retry-section');
+    const retryBtn = document.getElementById('retryBtn');
+    const endBtn = document.getElementById('endBtn');
+    const filterIncorrect = document.getElementById('filterIncorrect');
+
+    // ====== INIT EVENTS ======
+    document.getElementById('start-timed').addEventListener('click', () => startQuiz(true));
+    document.getElementById('start-untimed').addEventListener('click', () => startQuiz(false));
+    pauseBtn.addEventListener('click', togglePause);
+    nextBtn.addEventListener('click', showNextQuestion);
+    container.addEventListener('change', checkAnswer);
+    retryBtn.addEventListener('click', handleRetry);
+    document.getElementById('retakeAllBtn').addEventListener('click', handleRetakeAll);
+    endBtn.addEventListener('click', () => { retrySection.innerHTML = '<h2>Practice Exam Completed</h2>'; });
+    filterIncorrect.addEventListener('change', renderReview);
+
+    // ====== CORE ======
+    function startQuiz(timed) {
+      questions = JSON.parse(JSON.stringify(allQuestionsMaster));
+      questions.forEach(q => shuffle(q.options));
+      shuffle(questions);
+
+      currentIndex = 0;
+      score = 0;
+      incorrectQuestions = [];
+
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('quiz-content').style.display = 'block';
+      document.getElementById('quiz-controls').style.display = timed ? 'block' : 'none';
+
+      isTimed = timed;
+      isPaused = false;
+      timeLeft = 5400;
+      document.getElementById('time').textContent = timeLeft;
+      document.getElementById('progressBar').style.width = '100%';
+      pauseBtn.textContent = 'Pause Timer';
+
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+
+      if (timed) {
+        if (timer) clearInterval(timer);
+        timer = setInterval(() => {
+          if (!isPaused) {
+            timeLeft--;
+            updateTimer();
+            if (timeLeft <= 0) {
+              clearInterval(timer);
+              completeQuiz();
+            }
+          }
+        }, 1000);
+      }
+
+      renderQuestion(currentIndex);
+    }
+
+    function updateTimer() {
+      document.getElementById('time').textContent = timeLeft;
+      document.getElementById('progressBar').style.width = `${(timeLeft / 5400) * 100}%`;
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? 'Resume Timer' : 'Pause Timer';
+    }
+
+    function transitionQuestion(newIndex, direction = 1) {
+      const oldDiv = container.querySelector('.question.active');
+      if (oldDiv) {
+        oldDiv.classList.remove('active');
+        oldDiv.classList.add('exit');
+        setTimeout(() => {
+          if (oldDiv.parentNode) oldDiv.parentNode.removeChild(oldDiv);
+          renderQuestion(newIndex, direction);
+        }, 400);
+      } else {
+        renderQuestion(newIndex, direction);
+      }
+    }
+
+    function renderQuestion(index, direction = 1) {
+      container.innerHTML = '';
+      counter.textContent = `Question ${index + 1} of ${questions.length}`;
+      const q = questions[index];
+      const div = document.createElement('div');
+      div.className = 'question active enter';
+      setTimeout(() => div.classList.remove('enter'), 400);
+
+      const questionText = document.createElement('p');
+      questionText.textContent = `${index + 1}. ${q.text}`;
+      questionText.style.fontWeight = 'bold';
+      div.appendChild(questionText);
+
+      const ul = document.createElement('ul');
+      ul.className = 'options';
+
+      q.options.forEach(option => {
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.type = q.multiselect ? 'checkbox' : 'radio';
+        input.name = 'q' + index;
+        input.value = option;
+        li.appendChild(input);
+        li.appendChild(document.createTextNode(option));
+        ul.appendChild(li);
+      });
+
+      div.appendChild(ul);
+      container.appendChild(div);
+      nextBtn.style.display = 'none';
+    }
+
+    function showNextQuestion() {
+      if (currentIndex < questions.length - 1) {
+        transitionQuestion(currentIndex + 1, 1);
+        currentIndex++;
+      } else {
+        completeQuiz();
+      }
+    }
+
+    function completeQuiz() {
+      document.getElementById('quiz-content').style.display = 'none';
+      if (isTimed && timer) clearInterval(timer);
+
+      const percentage = (score / questions.length) * 100;
+      const scoreText = `Final Score: ${score} out of ${questions.length} (${percentage.toFixed(1)}%)`;
+
+      // Summary banner at top
+      const banner = document.getElementById('summary-banner');
+      const summaryText = document.getElementById('summary-text');
+      const summarySub = document.getElementById('summary-sub');
+      if (banner && summaryText && summarySub) {
+        banner.classList.remove('pass','fail');
+        if (percentage >= 85) {
+          banner.classList.add('pass');
+          summaryText.textContent = '🎉 Passed the exam';
+        } else {
+          banner.classList.add('fail');
+          summaryText.textContent = '😢 Did not reach the 85% threshold';
+        }
+        summarySub.textContent = scoreText.replace('Final Score: ', '');
+        banner.style.display = 'block';
+      }
+
+      // Results block
+      document.getElementById('review-section').style.display = 'block';
+      const scoreBox = document.getElementById('score');
+      scoreBox.textContent = scoreText;
+
+      // Always show both retake options
+      finalMessage.textContent = (percentage >= 85) ? '🎉 Congratulations, you PASSED!' : '😢 Sorry, you did not reach the 85% threshold.';
+      retryBtn.style.display = 'inline-block';
+      const retakeAllBtnEl = document.getElementById('retakeAllBtn'); if (retakeAllBtnEl) retakeAllBtnEl.style.display = 'inline-block';
+
+      retrySection.style.display = 'block';
+      renderReview();
+    }
+
+    async function checkAnswer() {
+      const q = questions[currentIndex];
+      if (q._graded) return;
+
+      const inputs = document.querySelectorAll(`input[name="q${currentIndex}"]:checked`);
+      q.userAnswer = Array.from(inputs).map(input => input.value);
+
+      const selected = q.userAnswer;
+      const isCorrect = q.correct.length === selected.length && q.correct.every(val => selected.includes(val));
+
+      const resultBlock = document.createElement('div');
+      resultBlock.className = 'result-block';
+
+      const yourAnswer = document.createElement('p');
+      yourAnswer.textContent = `Your Answer: ${selected.join(', ') || 'None selected'}`;
+      resultBlock.appendChild(yourAnswer);
+
+      const result = document.createElement('p');
+      result.textContent = isCorrect ? '✅ Result: Correct!' : '❌ Result: Incorrect';
+      resultBlock.appendChild(result);
+
+      const correctAnswer = document.createElement('p');
+      correctAnswer.textContent = `Correct Answer: ${q.correct.join(', ')}`;
+      resultBlock.appendChild(correctAnswer);
+
+      if (q.explanation) {
+        const explanation = document.createElement('p');
+        explanation.textContent = `Explanation: ${q.explanation}`;
+        resultBlock.appendChild(explanation);
+      }
+
+      // Placeholder for AI assessment
+      const aiAssessment = document.createElement('p');
+      aiAssessment.className = 'ai-assessment muted';
+      aiAssessment.textContent = 'AI assessment: fetching...';
+      resultBlock.appendChild(aiAssessment);
+
+      container.querySelector('.question').appendChild(resultBlock);
+
+      q._graded = true;
+      if (isCorrect) {
+        score++;
+      } else {
+        incorrectQuestions.push(q);
+      }
+
+      nextBtn.style.display = 'inline-block';
+
+      // Call ChatGPT and update the placeholder
+      try {
+        const assessment = await callChatGPT(q.text, selected, q.correct);
+        aiAssessment.textContent = assessment;
+      } catch (err) {
+        console.error('ChatGPT request failed', err);
+        aiAssessment.textContent = 'AI assessment unavailable.';
+      }
+    }
+
+    function renderReview() {
+      const reviewContainer = document.getElementById('review-container');
+      const totalPercent = ((score / questions.length) * 100).toFixed(1);
+      document.getElementById('total-percentage').textContent = `Overall Score: ${totalPercent}%`;
+      reviewContainer.innerHTML = '';
+
+      const showOnlyIncorrect = filterIncorrect.checked;
+      questions.forEach((q, i) => {
+        const ua = q.userAnswer || [];
+        const isCorrect = q.correct.length === ua.length && q.correct.every(v => ua.includes(v));
+        if (showOnlyIncorrect && isCorrect) return;
+
+        const block = document.createElement('div');
+        block.style.marginBottom = '16px';
+
+        const question = document.createElement('p');
+        question.innerHTML = '<strong>Question:</strong> ' + (i + 1) + '. ' + q.text;
+        block.appendChild(question);
+
+        const userAnswer = document.createElement('p');
+        userAnswer.innerHTML = '<strong>Your Answer:</strong> ' + (ua.join(', ') || 'None selected');
+        block.appendChild(userAnswer);
+
+        const result = document.createElement('p');
+        result.innerHTML = '<strong>Result:</strong> ' + (isCorrect ? '✅ Correct' : '❌ Incorrect');
+        block.appendChild(result);
+
+        const correct = document.createElement('p');
+        correct.innerHTML = '<strong>Correct Answer:</strong> ' + q.correct.join(', ');
+        block.appendChild(correct);
+
+        if (q.explanation) {
+          const explanation = document.createElement('p');
+          explanation.innerHTML = '<strong>Explanation:</strong> ' + q.explanation;
+          block.appendChild(explanation);
+        }
+
+        reviewContainer.appendChild(block);
+      });
+    }
+
+    // Retake incorrect only
+    function handleRetry() {
+      const source = (incorrectQuestions && incorrectQuestions.length > 0) ? incorrectQuestions : allQuestionsMaster;
+      questions = JSON.parse(JSON.stringify(source));
+      questions.forEach(q => { delete q._graded; delete q.userAnswer; if (Array.isArray(q.options)) shuffle(q.options); });
+      shuffle(questions);
+
+      incorrectQuestions = [];
+      currentIndex = 0;
+      score = 0;
+
+      const review = document.getElementById('review-section'); if (review) review.style.display = 'none';
+      const scoreBox = document.getElementById('score'); if (scoreBox) scoreBox.textContent = '';
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+      if (nextBtn) nextBtn.style.display = 'none';
+
+      document.getElementById('quiz-content').style.display = 'block';
+      retrySection.style.display = 'none';
+      renderQuestion(currentIndex);
+    }
+
+    // Retake entire bank
+    function handleRetakeAll() {
+      questions = JSON.parse(JSON.stringify(allQuestionsMaster));
+      questions.forEach(q => { delete q._graded; delete q.userAnswer; if (Array.isArray(q.options)) shuffle(q.options); });
+      shuffle(questions);
+
+      incorrectQuestions = [];
+      currentIndex = 0;
+      score = 0;
+
+      const review = document.getElementById('review-section'); if (review) review.style.display = 'none';
+      const scoreBox = document.getElementById('score'); if (scoreBox) scoreBox.textContent = '';
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+      if (nextBtn) nextBtn.style.display = 'none';
+
+      document.getElementById('quiz-content').style.display = 'block';
+      retrySection.style.display = 'none';
+      renderQuestion(currentIndex);
+    }
+  </script>
+</body>
+</html>
