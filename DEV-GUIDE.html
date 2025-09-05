@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Server - Development Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status-running {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-stopped {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .method {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .method h3 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+        .code {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Quiz Server Development Guide</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Important:</strong> Don't use "Launch with Live Server" on server.js! 
+            Live Server is for static files, but server.js is a Node.js Express server that needs to run differently.
+        </div>
+
+        <div id="serverStatus" class="status-indicator status-stopped">
+            🔴 Server Status: Checking...
+        </div>
+
+        <h2>🎯 Proper Ways to Start Your Server</h2>
+
+        <div class="method">
+            <h3>Method 1: Using VS Code Tasks (Recommended)</h3>
+            <p>Press <code>Ctrl+Shift+P</code> → Type "Tasks: Run Task" → Choose:</p>
+            <ul>
+                <li><strong>"Start Quiz Server"</strong> - Normal start</li>
+                <li><strong>"Start with Hot Reload"</strong> - Auto-restarts on file changes</li>
+                <li><strong>"Stop All Node Servers"</strong> - Stops all running servers</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <h3>Method 2: Using VS Code Debug/Run</h3>
+            <p>Go to Run and Debug (Ctrl+Shift+D) → Choose:</p>
+            <ul>
+                <li><strong>"Start Quiz Server"</strong> - With hot reload</li>
+                <li><strong>"Debug Quiz Server"</strong> - With debugging support</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <h3>Method 3: Using Terminal Commands</h3>
+            <div class="code">
+npm start          # Start server normally
+npm run dev        # Start with hot reload (restarts on changes)
+npm run stop       # Stop all Node servers</div>
+        </div>
+
+        <div class="method">
+            <h3>Method 4: Direct Node Command</h3>
+            <div class="code">node server.js    # Basic start
+node --watch server.js  # With hot reload (Node 18+)</div>
+        </div>
+
+        <h2>🔗 Available Endpoints</h2>
+        <div class="endpoint">
+            <strong>Main Application:</strong> <a href="http://localhost:3001" target="_blank" rel="noopener">http://localhost:3001</a>
+        </div>
+        <div class="endpoint">
+            <strong>Quiz Pages:</strong> 
+            <a href="http://localhost:3001/User_Acceptance.html" target="_blank" rel="noopener">User_Acceptance.html</a> | 
+            <a href="http://localhost:3001/User_Acceptance_Modular.html" target="_blank" rel="noopener">User_Acceptance_Modular.html</a>
+        </div>
+        <div class="endpoint">
+            <strong>API Assessment:</strong> POST http://localhost:3001/api/assess
+        </div>
+        <div class="endpoint">
+            <strong>Server Diagnostics:</strong> <a href="http://localhost:3001/diag" target="_blank" rel="noopener">http://localhost:3001/diag</a>
+        </div>
+
+        <h2>🔧 Quick Actions</h2>
+        <button onclick="startServer()">🚀 Start Server (Task)</button>
+        <button onclick="startWithReload()">🔄 Start with Hot Reload</button>
+        <button onclick="stopServer()">🛑 Stop All Servers</button>
+        <button onclick="checkStatus()">📊 Check Status</button>
+        <button onclick="openQuiz()">🎯 Open Quiz</button>
+
+        <div class="success" style="margin-top: 20px;">
+            <strong>💡 Pro Tip:</strong> Use "Start with Hot Reload" during development - it automatically restarts the server when you save changes to server.js!
+        </div>
+
+        <h2>📁 Project Structure</h2>
+        <div class="code">
+📦 QuizTimeHTML/
+├── 🖥️ server.js           # Your Express server (don't use Live Server on this!)
+├── 📄 index.html          # Static files (can use Live Server)
+├── 📄 User_Acceptance.html # Quiz interface
+├── 📦 src/                # Application source code
+├── 📦 public/             # Static assets
+└── 📋 package.json        # Project configuration</div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('http://localhost:3001/diag');
+                const data = await response.json();
+                document.getElementById('serverStatus').className = 'status-indicator status-running';
+                document.getElementById('serverStatus').innerHTML = '🟢 Server Status: Running on port 3001';
+            } catch (error) {
+                document.getElementById('serverStatus').className = 'status-indicator status-stopped';
+                document.getElementById('serverStatus').innerHTML = '🔴 Server Status: Not Running';
+            }
+        }
+
+        function startServer() {
+            // Use VS Code command API if available
+            if (window.vscode) {
+                window.vscode.postMessage({
+                    command: 'runTask',
+                    taskName: 'Start Quiz Server'
+                });
+            } else {
+                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Start Quiz Server"');
+            }
+        }
+
+        function startWithReload() {
+            if (window.vscode) {
+                window.vscode.postMessage({
+                    command: 'runTask',
+                    taskName: 'Start with Hot Reload'
+                });
+            } else {
+                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Start with Hot Reload"');
+            }
+        }
+
+        function stopServer() {
+            if (window.vscode) {
+                window.vscode.postMessage({
+                    command: 'runTask',
+                    taskName: 'Stop All Node Servers'
+                });
+            } else {
+                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Stop All Node Servers"');
+            }
+        }
+
+        function openQuiz() {
+            window.open('http://localhost:3001/User_Acceptance.html', '_blank');
+        }
+
+        // Check status on page load
+        checkStatus();
+        
+        // Check status every 5 seconds
+        setInterval(checkStatus, 5000);
+    </script>
+</body>
+</html>

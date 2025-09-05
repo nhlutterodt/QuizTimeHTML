@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenAI Basic Test</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #response { margin-top: 1em; padding: 1em; border: 1px solid #ccc; background: #f9f9f9; }
+    label, input, button { font-size: 1em; }
+  </style>
+</head>
+<body>
+  <h2>OpenAI Basic Test Page</h2>
+  <label for="prompt">Prompt:</label>
+  <input type="text" id="prompt" value="Say hello!" size="40" />
+  <button id="sendBtn">Send to ChatGPT</button>
+  <div id="response"></div>
+  <script>
+    document.getElementById('sendBtn').onclick = async function() {
+      const prompt = document.getElementById('prompt').value;
+      document.getElementById('response').textContent = 'Loading...';
+      try {
+        const res = await fetch('/api/assess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText: prompt, userAnswerArray: [], correctAnswerArray: [] })
+        });
+        if (!res.ok) {
+          let err = await res.text();
+          document.getElementById('response').textContent = 'Error: ' + err;
+          return;
+        }
+        const data = await res.json();
+        document.getElementById('response').textContent = data.assessment || JSON.stringify(data);
+      } catch (e) {
+        document.getElementById('response').textContent = 'Request failed: ' + e;
+      }
+    };
+  </script>
+</body>
+</html>

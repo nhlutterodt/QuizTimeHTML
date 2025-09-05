@@ -1,0 +1,11 @@
+id,category,difficulty,type,question,option_a,option_b,option_c,option_d,correct_answer,explanation,points,time_limit
+1,Math,Easy,multiple_choice,What is 2 + 2?,2,3,4,5,C,Basic addition: 2 + 2 = 4,1,30
+2,Math,Medium,multiple_choice,What is the square root of 144?,10,11,12,13,C,The square root of 144 is 12 because 12 × 12 = 144,2,45
+3,Science,Easy,multiple_choice,What planet is closest to the Sun?,Venus,Earth,Mercury,Mars,C,Mercury is the closest planet to the Sun in our solar system,1,30
+4,Science,Medium,multiple_choice,What is the chemical symbol for gold?,Go,Au,Ag,Gd,B,Au is the chemical symbol for gold from the Latin word aurum,2,45
+5,History,Easy,multiple_choice,In which year did World War II end?,1944,1945,1946,1947,B,World War II ended in 1945 with the surrender of Japan,1,30
+6,History,Medium,multiple_choice,Who was the first President of the United States?,Thomas Jefferson,John Adams,George Washington,Benjamin Franklin,C,George Washington was the first President of the United States (1789-1797),2,45
+7,Geography,Easy,multiple_choice,What is the capital of France?,London,Berlin,Madrid,Paris,D,Paris is the capital and largest city of France,1,30
+8,Geography,Medium,multiple_choice,Which river is the longest in the world?,Amazon,Nile,Mississippi,Yangtze,B,The Nile River is considered the longest river in the world at about 4132 miles,2,45
+9,Literature,Easy,multiple_choice,Who wrote Romeo and Juliet?,Charles Dickens,Mark Twain,William Shakespeare,Jane Austen,C,William Shakespeare wrote the famous tragedy Romeo and Juliet,1,30
+10,Literature,Medium,multiple_choice,What is the first book in the Harry Potter series?,Chamber of Secrets,Philosopher's Stone,Prisoner of Azkaban,Goblet of Fire,B,Harry Potter and the Philosopher's Stone (or Sorcerer's Stone in the US) is the first book,2,45

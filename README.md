@@ -6,9 +6,10 @@ This project is a static quiz app that now includes per-question AI assessments 
 
 Quick start (local)
 
-1. Create a .env file in the project root with your OpenAI API key:
+1. Copy the example env and add your OpenAI key locally (PowerShell example):
 
-   OPENAI_API_KEY=sk-...
+   Copy-Item .env.example .env
+   # Then open .env and set OPENAI_API_KEY to your real key (do NOT commit it).
 
 2. Initialize npm and install dependencies:
 
@@ -21,7 +22,7 @@ Quick start (local)
 
 4. Open the app in your browser:
 
-   http://localhost:3000/User_Acceptance.html
+   http://localhost:3001/User_Acceptance.html
 
 Notes & security
 

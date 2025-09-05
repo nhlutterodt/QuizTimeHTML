@@ -1,0 +1,54 @@
+{
+  "name": "professional-quiz-application",
+  "version": "2.0.0",
+  "description": "A modular, professional quiz application with AI assessment capabilities",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Tests will be implemented\" && exit 0",
+    "lint": "echo \"Linting will be implemented\" && exit 0",
+    "build": "echo \"Build process will be implemented\" && exit 0"
+  },
+  "directories": {
+    "public": "./public",
+    "src": "./src",
+    "docs": "./docs",
+    "data": "./src/data"
+  },
+  "files": [
+    "index.html",
+    "src/",
+    "public/",
+    "server.js",
+    "README.md"
+  ],
+  "keywords": [
+    "quiz",
+    "education",
+    "assessment",
+    "ai",
+    "modular",
+    "javascript",
+    "es6"
+  ],
+  "author": "Quiz Application Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhlutterodt/QuizTimeHTML.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nhlutterodt/QuizTimeHTML/issues"
+  },
+  "homepage": "https://github.com/nhlutterodt/QuizTimeHTML#readme"
+}

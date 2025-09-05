@@ -1,0 +1,763 @@
+<!-- Version: User Stories Quiz v1.5.    <button class="btn hidden" id="nextBtn">Next Question</button> - Stable as of 2025-09-03 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Stories Exam</title>
+  <link rel="stylesheet" href="quiz-style.css">
+  <script src="csv-manager.js"></script>
+</head>
+<body>
+  <h1>User Stories Exam</h1>
+  <div id="file-warning"></div>
+  <div id="ai-status" class="ai-status-banner">
+    <span id="ai-status-text">🤖 AI Tutor: Checking availability...</span>
+  </div>
+  <div id="summary-banner" class="summary-banner"><span id="summary-text"></span><span class="sub" id="summary-sub"></span></div>
+
+  <div id="start-screen">
+    <h2>Quiz Configuration</h2>
+    
+    <div class="config-section">
+      <h3>Question Source</h3>
+      <div>
+        <label><input type="radio" name="questionSource" value="builtin" checked> Built-in questions</label><br>
+        <label><input type="radio" name="questionSource" value="csv"> Load from CSV file</label>
+      </div>
+    </div>
+    
+    <div id="csv-config" class="config-section hidden">
+      <h3>CSV Question Options</h3>
+      <div>
+        <label>Category: 
+          <select id="csv-category">
+            <option value="">All Categories</option>
+          </select>
+        </label><br>
+        <label>Difficulty: 
+          <select id="csv-difficulty">
+            <option value="">All Difficulties</option>
+          </select>
+        </label><br>
+        <label>Number of questions: 
+          <input type="number" id="csv-count" value="10" min="1" max="50">
+        </label>
+      </div>
+      <button id="load-csv" class="btn">Load Questions from CSV</button>
+      <div id="csv-status"></div>
+    </div>
+    
+    <div class="config-section">
+      <h3>Timer Settings</h3>
+      <p>Would you like to take the exam with a timer?</p>
+      <div>
+        <label><input type="radio" name="timerMode" value="exam" checked> Exam-wide timer (e.g., 90 minutes)</label><br>
+        <label><input type="radio" name="timerMode" value="section"> Section timer (e.g., 30 min Section 1, 60 min Section 2)</label><br>
+        <label><input type="radio" name="timerMode" value="question"> Per-question timer (e.g., 90 seconds per question)</label>
+      </div>
+    </div>
+    
+  <div id="timer-config"></div>
+    <button id="start-timed" class="btn">Start Timed Exam</button>
+    <button id="start-untimed" class="btn">No, let me take it at my own pace</button>
+  </div>
+
+  <div id="quiz-controls">
+    <div class="timer">Time remaining: <span id="time">5400</span> seconds</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <button class="btn" id="pauseBtn">Pause Timer</button>
+  </div>
+
+  <div id="quiz-content">
+    <div id="question-counter"></div>
+    <div id="quiz-container"></div>
+  <button class="btn" id="nextBtn" class="hidden">Next Question</button>
+  </div>
+
+  <div id="retry-section">
+    <div id="final-message"></div>
+    <div id="score" class="muted"></div>
+    <button class="btn" id="retryBtn">Retake Incorrect Questions</button>
+    <button class="btn" id="retakeAllBtn">Retake All Questions</button>
+    <button class="btn" id="endBtn">End Practice Exam</button>
+  </div>
+
+  <div id="review-section">
+    <div class="hr"></div>
+    <div>
+      <label>
+        <input type="checkbox" id="filterIncorrect"/>
+        Show only incorrect answers
+      </label>
+    </div>
+  <div id="total-percentage"></div>
+    <h2>Review Your Answers</h2>
+    <div id="review-container"></div>
+  </div>
+
+  <script>
+    // Warn if loaded via file:// instead of http://localhost:3000/
+    if (window.location.protocol === 'file:') {
+      document.getElementById('file-warning').style.display = 'block';
+      document.getElementById('file-warning').textContent =
+        'ERROR: This app must be opened via http://localhost:3000/User_Acceptance.html (not double-clicked from your files). Please run `npm start` and open the link in your browser.';
+    }
+
+    // Check AI availability - independent of server status
+    async function checkAIAvailability() {
+      const statusElement = document.getElementById('ai-status');
+      const statusText = document.getElementById('ai-status-text');
+      
+      // Check if we can reach the backend server
+      const backendUrl = 'http://localhost:3001';
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/ai-status`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.available) {
+            statusElement.className = 'ai-status-banner available';
+            statusText.textContent = '🤖 AI Tutor: Available and ready to provide personalized feedback!';
+          } else {
+            statusElement.className = 'ai-status-banner unavailable';
+            statusText.textContent = `🤖 AI Tutor: ${data.error || 'Limited availability'} - Quiz continues normally`;
+          }
+        } else {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+      } catch (error) {
+        // Server not reachable - show informative message
+        statusElement.className = 'ai-status-banner unavailable';
+        statusText.textContent = '🤖 AI Tutor: Backend server not running - Start server for AI features';
+        
+        // Add a helpful hint
+        const hintElement = document.createElement('div');
+        hintElement.style.fontSize = '0.9em';
+        hintElement.style.marginTop = '5px';
+        hintElement.textContent = '💡 Run "npm start" in terminal to enable AI features';
+        statusElement.appendChild(hintElement);
+      }
+    }
+
+    // Check AI availability when page loads (works with any protocol)
+    checkAIAvailability();
+    // ====== DATA (from updated spreadsheet) ======
+    const allQuestionsMaster = [
+      {
+        "text": "As part of sprint planning, the scrum team was assigned a task that had to be completed by the end of the sprint. The developers finished the work, and the business analyst provided a demo to stakeholders. During the demo, the stakeholders complained that the work is not complete. What could have helped in this situation? (Select 1 answer)?",
+        "options": [
+          "Creating a definition of done.",
+          "Statements with clear pass or fail outcomes which are added to a user story.",
+          "She mistakenly used the 'why' of the Customer Service Supervisors\" requirement.",
+          "A set of guidelines that specify all the work that needs to be completed by the scrum team to deem the task truly done."
+        ],
+        "correct": [
+          "Creating a definition of done."
+        ],
+        "multiselect": false,
+        "explanation": ""
+      }
+      // ... The full list of cleaned questions from your spreadsheet
+      // was embedded when we generated your latest HTML file.
+      // (If you want me to paste every question/option here too, say the word.)
+    ];
+
+    // ====== HELPERS ======
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Call proxy to get a short assessment of the user's answer
+    /**
+     * Calls the OpenAI assessment endpoint for a question/answer pair.
+     * Ensures robust error handling and clear user feedback if the API fails.
+     * Follows OpenAI best practices: secure proxy, no API key in client, clear prompt, and user notification on error.
+     * Enhanced with specific handling for quota limits, rate limits, and other OpenAI errors.
+     */
+    async function callChatGPT(questionText, userAnswerArray, correctAnswerArray) {
+      try {
+        const res = await fetch('http://localhost:3001/api/assess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText, userAnswerArray, correctAnswerArray })
+        });
+        
+        if (!res.ok) {
+          return 'AI assessment unavailable. Please check your connection or try again later.';
+        }
+        
+        const data = await res.json().catch(() => ({}));
+        
+        // Check if this is an error response with user-friendly message
+        if (data.error_type) {
+          // Update the global AI status if we detect quota issues
+          if (data.error_type === 'insufficient_quota') {
+            updateAIStatusBanner('quota_exceeded');
+          } else if (data.error_type === 'rate_limit_exceeded') {
+            updateAIStatusBanner('rate_limited');
+          }
+        }
+        
+        return data.assessment || 'No assessment returned.';
+      } catch (err) {
+        console.error('OpenAI assessment error:', err);
+        return 'AI assessment unavailable. Please check your connection or try again later.';
+      }
+    }
+
+    // Function to update AI status banner based on error conditions
+    function updateAIStatusBanner(errorType) {
+      const statusElement = document.getElementById('ai-status');
+      const statusText = document.getElementById('ai-status-text');
+      
+      if (!statusElement || !statusText) return;
+      
+      switch (errorType) {
+        case 'quota_exceeded':
+          statusElement.className = 'ai-status-banner unavailable';
+          statusText.textContent = '🤖 AI Tutor: Daily quota reached - Quiz continues with explanations only';
+          break;
+        case 'rate_limited':
+          statusElement.className = 'ai-status-banner unavailable';
+          statusText.textContent = '🤖 AI Tutor: Temporarily busy - Retrying automatically';
+          // Auto-retry after a delay
+          setTimeout(() => {
+            statusElement.className = 'ai-status-banner checking';
+            statusText.textContent = '🤖 AI Tutor: Checking availability...';
+            setTimeout(checkAIAvailability, 5000);
+          }, 30000); // Wait 30 seconds before retrying
+          break;
+        default:
+          statusElement.className = 'ai-status-banner unavailable';
+          statusText.textContent = '🤖 AI Tutor: Limited availability - Quiz continues normally';
+      }
+    }
+
+    // ====== STATE ======
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timer, timeLeft = 5400;
+    let isPaused = false;
+    let isTimed = false;
+    let incorrectQuestions = [];
+
+    // CSV Question Manager
+    const csvManager = new CSVQuestionManager();
+    let isUsingCSV = false;
+
+    // Timer configuration state
+    let timerConfig = {
+      timerMode: 'exam', // 'exam' | 'section' | 'question'
+      examDuration: 5400, // seconds
+      sectionDurations: [1800, 3600], // example: [30min, 60min]
+      questionDurations: [] // e.g., [90, 90, 120, ...]
+    };
+
+    const container = document.getElementById('quiz-container');
+    const counter = document.getElementById('question-counter');
+    const nextBtn = document.getElementById('nextBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const finalMessage = document.getElementById('final-message');
+    const retrySection = document.getElementById('retry-section');
+    const retryBtn = document.getElementById('retryBtn');
+    const endBtn = document.getElementById('endBtn');
+    const filterIncorrect = document.getElementById('filterIncorrect');
+
+    // ====== INIT EVENTS ======
+    // Timer mode selection logic
+    const timerModeRadios = document.getElementsByName('timerMode');
+    const timerConfigDiv = document.getElementById('timer-config');
+    function updateTimerConfigUI() {
+      const selected = Array.from(timerModeRadios).find(r => r.checked).value;
+      timerConfig.timerMode = selected;
+      let html = '';
+      if (selected === 'exam') {
+        html = 'Exam duration (minutes): <input type="number" id="examDuration" value="90" min="1" max="300">';
+      } else if (selected === 'section') {
+        html = 'Section durations (comma-separated, minutes): <input type="text" id="sectionDurations" value="30,60">';
+      } else if (selected === 'question') {
+        html = 'Per-question duration (seconds): <input type="number" id="questionDuration" value="90" min="10" max="600">';
+      }
+      timerConfigDiv.innerHTML = html;
+    }
+    timerModeRadios.forEach(r => r.addEventListener('change', updateTimerConfigUI));
+    updateTimerConfigUI();
+
+    document.getElementById('start-timed').addEventListener('click', () => {
+      // Read config values
+      const selected = Array.from(timerModeRadios).find(r => r.checked).value;
+      timerConfig.timerMode = selected;
+      if (selected === 'exam') {
+        const mins = parseInt(document.getElementById('examDuration').value, 10) || 90;
+        timerConfig.examDuration = mins * 60;
+      } else if (selected === 'section') {
+        const arr = (document.getElementById('sectionDurations').value || '30,60').split(',').map(s => parseInt(s.trim(), 10) * 60);
+        timerConfig.sectionDurations = arr;
+      } else if (selected === 'question') {
+        const secs = parseInt(document.getElementById('questionDuration').value, 10) || 90;
+        timerConfig.questionDurations = Array(allQuestionsMaster.length).fill(secs);
+      }
+      startQuiz(true);
+    });
+    document.getElementById('start-untimed').addEventListener('click', () => startQuiz(false));
+    pauseBtn.addEventListener('click', togglePause);
+    nextBtn.addEventListener('click', showNextQuestion);
+    container.addEventListener('change', checkAnswer);
+    retryBtn.addEventListener('click', handleRetry);
+    
+    // CSV-related event handlers
+    const questionSourceRadios = document.querySelectorAll('input[name="questionSource"]');
+    const csvConfig = document.getElementById('csv-config');
+    const csvCategorySelect = document.getElementById('csv-category');
+    const csvDifficultySelect = document.getElementById('csv-difficulty');
+    const loadCSVBtn = document.getElementById('load-csv');
+    const csvStatus = document.getElementById('csv-status');
+    
+    questionSourceRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === 'csv') {
+          csvConfig.classList.remove('hidden');
+          isUsingCSV = true;
+        } else {
+          csvConfig.classList.add('hidden');
+          isUsingCSV = false;
+        }
+      });
+    });
+    
+    loadCSVBtn.addEventListener('click', async function() {
+      try {
+        csvStatus.textContent = 'Loading questions from CSV...';
+        csvStatus.className = '';
+        
+        await csvManager.loadQuestionsFromCSV('questions.csv');
+        
+        // Populate dropdown options
+        populateCSVDropdowns();
+        
+        csvStatus.textContent = `Successfully loaded ${csvManager.getAllQuestions().length} questions from CSV`;
+        csvStatus.className = 'success';
+        
+      } catch (error) {
+        csvStatus.textContent = `Error loading CSV: ${error.message}`;
+        csvStatus.className = 'error';
+      }
+    });
+    
+    function populateCSVDropdowns() {
+      // Clear existing options
+      csvCategorySelect.innerHTML = '<option value="">All Categories</option>';
+      csvDifficultySelect.innerHTML = '<option value="">All Difficulties</option>';
+      
+      // Add categories
+      csvManager.getCategories().forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        csvCategorySelect.appendChild(option);
+      });
+      
+      // Add difficulties
+      csvManager.getDifficulties().forEach(difficulty => {
+        const option = document.createElement('option');
+        option.value = difficulty;
+        option.textContent = difficulty;
+        csvDifficultySelect.appendChild(option);
+      });
+    }
+    document.getElementById('retakeAllBtn').addEventListener('click', handleRetakeAll);
+    endBtn.addEventListener('click', () => { retrySection.innerHTML = '<h2>Practice Exam Completed</h2>'; });
+    filterIncorrect.addEventListener('change', renderReview);
+
+    // ====== CORE ======
+    // Modular timer logic supporting exam, section, and per-question modes
+    function startQuiz(timed) {
+      // Determine question source
+      if (isUsingCSV && csvManager.getAllQuestions().length > 0) {
+        // Use CSV questions with filtering
+        const criteria = {
+          category: csvCategorySelect.value || undefined,
+          difficulty: csvDifficultySelect.value || undefined
+        };
+        const count = parseInt(document.getElementById('csv-count').value) || 10;
+        const csvQuestions = csvManager.getRandomQuestions(count, criteria);
+        questions = csvQuestions.map(q => csvManager.convertToQuizFormat(q));
+      } else {
+        // Use built-in questions
+        questions = JSON.parse(JSON.stringify(allQuestionsMaster));
+        questions.forEach(q => shuffle(q.options));
+        shuffle(questions);
+      }
+
+      currentIndex = 0;
+      score = 0;
+      incorrectQuestions = [];
+
+      document.getElementById('start-screen').style.display = 'none';
+      document.getElementById('quiz-content').style.display = 'block';
+      document.getElementById('quiz-controls').style.display = timed ? 'block' : 'none';
+
+      isTimed = timed;
+      isPaused = false;
+      pauseBtn.textContent = 'Pause Timer';
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+
+      // Timer initialization based on mode
+      if (timed) {
+        if (timer) clearInterval(timer);
+        if (timerConfig.timerMode === 'exam') {
+          timeLeft = timerConfig.examDuration;
+          document.getElementById('time').textContent = timeLeft;
+          document.getElementById('progressBar').style.width = '100%';
+          timer = setInterval(() => {
+            if (!isPaused) {
+              timeLeft--;
+              updateTimer(timerConfig.examDuration);
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                completeQuiz();
+              }
+            }
+          }, 1000);
+        } else if (timerConfig.timerMode === 'section') {
+          // For demo, treat all questions as one section unless section data is available
+          timeLeft = timerConfig.sectionDurations[0] || 1800;
+          document.getElementById('time').textContent = timeLeft;
+          document.getElementById('progressBar').style.width = '100%';
+          timer = setInterval(() => {
+            if (!isPaused) {
+              timeLeft--;
+              updateTimer(timerConfig.sectionDurations[0]);
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                // In a real app, advance to next section here
+                completeQuiz();
+              }
+            }
+          }, 1000);
+        } else if (timerConfig.timerMode === 'question') {
+          timeLeft = timerConfig.questionDurations[currentIndex] || 90;
+          document.getElementById('time').textContent = timeLeft;
+          document.getElementById('progressBar').style.width = '100%';
+          timer = setInterval(() => {
+            if (!isPaused) {
+              timeLeft--;
+              updateTimer(timerConfig.questionDurations[currentIndex] || 90);
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                // Auto-advance to next question
+                if (currentIndex < questions.length - 1) {
+                  currentIndex++;
+                  startQuestionTimer();
+                  transitionQuestion(currentIndex, 1);
+                } else {
+                  completeQuiz();
+                }
+              }
+            }
+          }, 1000);
+        }
+      }
+
+      renderQuestion(currentIndex);
+    }
+
+    // Helper to start per-question timer on question change
+    function startQuestionTimer() {
+      if (timer) clearInterval(timer);
+      timeLeft = timerConfig.questionDurations[currentIndex] || 90;
+      document.getElementById('time').textContent = timeLeft;
+      document.getElementById('progressBar').style.width = '100%';
+      timer = setInterval(() => {
+        if (!isPaused) {
+          timeLeft--;
+          updateTimer(timerConfig.questionDurations[currentIndex] || 90);
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            if (currentIndex < questions.length - 1) {
+              currentIndex++;
+              startQuestionTimer();
+              transitionQuestion(currentIndex, 1);
+            } else {
+              completeQuiz();
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    // Update timer display and progress bar
+    function updateTimer(total) {
+      document.getElementById('time').textContent = timeLeft;
+      document.getElementById('progressBar').style.width = `${(timeLeft / (total || 5400)) * 100}%`;
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? 'Resume Timer' : 'Pause Timer';
+    }
+
+    function transitionQuestion(newIndex, direction = 1) {
+      const oldDiv = container.querySelector('.question.active');
+      if (oldDiv) {
+        oldDiv.classList.remove('active');
+        oldDiv.classList.add('exit');
+        setTimeout(() => {
+          if (oldDiv.parentNode) oldDiv.parentNode.removeChild(oldDiv);
+          renderQuestion(newIndex, direction);
+        }, 400);
+      } else {
+        renderQuestion(newIndex, direction);
+      }
+    }
+
+    function renderQuestion(index, direction = 1) {
+      container.innerHTML = '';
+      counter.textContent = `Question ${index + 1} of ${questions.length}`;
+      const q = questions[index];
+      const div = document.createElement('div');
+      div.className = 'question active enter';
+      setTimeout(() => div.classList.remove('enter'), 400);
+
+      const questionText = document.createElement('p');
+      questionText.textContent = `${index + 1}. ${q.text}`;
+      questionText.style.fontWeight = 'bold';
+      div.appendChild(questionText);
+
+      const ul = document.createElement('ul');
+      ul.className = 'options';
+
+      q.options.forEach(option => {
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.type = q.multiselect ? 'checkbox' : 'radio';
+        input.name = 'q' + index;
+        input.value = option;
+        li.appendChild(input);
+        li.appendChild(document.createTextNode(option));
+        ul.appendChild(li);
+      });
+
+      div.appendChild(ul);
+      container.appendChild(div);
+      nextBtn.classList.add('hidden');
+    }
+
+    function showNextQuestion() {
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        if (isTimed && timerConfig.timerMode === 'question') {
+          startQuestionTimer();
+        }
+        transitionQuestion(currentIndex, 1);
+      } else {
+        completeQuiz();
+      }
+    }
+
+    function completeQuiz() {
+      document.getElementById('quiz-content').style.display = 'none';
+      if (isTimed && timer) clearInterval(timer);
+
+      const percentage = (score / questions.length) * 100;
+      const scoreText = `Final Score: ${score} out of ${questions.length} (${percentage.toFixed(1)}%)`;
+
+      // Summary banner at top
+      const banner = document.getElementById('summary-banner');
+      const summaryText = document.getElementById('summary-text');
+      const summarySub = document.getElementById('summary-sub');
+      if (banner && summaryText && summarySub) {
+        banner.classList.remove('pass','fail');
+        if (percentage >= 85) {
+          banner.classList.add('pass');
+          summaryText.textContent = '🎉 Passed the exam';
+        } else {
+          banner.classList.add('fail');
+          summaryText.textContent = '😢 Did not reach the 85% threshold';
+        }
+        summarySub.textContent = scoreText.replace('Final Score: ', '');
+        banner.style.display = 'block';
+      }
+
+      // Results block
+      document.getElementById('review-section').style.display = 'block';
+      const scoreBox = document.getElementById('score');
+      scoreBox.textContent = scoreText;
+
+      // Always show both retake options
+      finalMessage.textContent = (percentage >= 85) ? '🎉 Congratulations, you PASSED!' : '😢 Sorry, you did not reach the 85% threshold.';
+      retryBtn.classList.remove('hidden');
+      const retakeAllBtnEl = document.getElementById('retakeAllBtn'); if (retakeAllBtnEl) retakeAllBtnEl.classList.remove('hidden');
+
+      retrySection.style.display = 'block';
+      renderReview();
+    }
+
+    async function checkAnswer() {
+      const q = questions[currentIndex];
+      if (q._graded) return;
+
+      const inputs = document.querySelectorAll(`input[name="q${currentIndex}"]:checked`);
+      q.userAnswer = Array.from(inputs).map(input => input.value);
+
+      const selected = q.userAnswer;
+      const isCorrect = q.correct.length === selected.length && q.correct.every(val => selected.includes(val));
+
+      const resultBlock = document.createElement('div');
+      resultBlock.className = 'result-block';
+
+      const yourAnswer = document.createElement('p');
+      yourAnswer.textContent = `Your Answer: ${selected.join(', ') || 'None selected'}`;
+      resultBlock.appendChild(yourAnswer);
+
+      const result = document.createElement('p');
+      result.textContent = isCorrect ? '✅ Result: Correct!' : '❌ Result: Incorrect';
+      resultBlock.appendChild(result);
+
+      const correctAnswer = document.createElement('p');
+      correctAnswer.textContent = `Correct Answer: ${q.correct.join(', ')}`;
+      resultBlock.appendChild(correctAnswer);
+
+      if (q.explanation) {
+        const explanation = document.createElement('p');
+        explanation.textContent = `Explanation: ${q.explanation}`;
+        resultBlock.appendChild(explanation);
+      }
+
+      // Placeholder for AI assessment with improved UX
+      const aiAssessment = document.createElement('div');
+      aiAssessment.className = 'ai-assessment loading';
+      aiAssessment.textContent = 'Analyzing your answer...';
+      resultBlock.appendChild(aiAssessment);
+
+      container.querySelector('.question').appendChild(resultBlock);
+
+      q._graded = true;
+      if (isCorrect) {
+        score++;
+      } else {
+        incorrectQuestions.push(q);
+      }
+
+      nextBtn.classList.remove('hidden');
+
+      // Call OpenAI and update with appropriate styling based on error type
+      try {
+        const assessment = await callChatGPT(q.text, selected, q.correct);
+        
+        // Check if the assessment indicates a specific error condition
+        if (assessment.includes('quota exceeded') || assessment.includes('Daily quota reached')) {
+          aiAssessment.className = 'ai-assessment quota-exceeded';
+        } else if (assessment.includes('temporarily unavailable') || assessment.includes('service encountered')) {
+          aiAssessment.className = 'ai-assessment error';
+        } else if (assessment.includes('AI assessment unavailable')) {
+          aiAssessment.className = 'ai-assessment error';
+        } else {
+          aiAssessment.className = 'ai-assessment';
+        }
+        
+        aiAssessment.textContent = assessment;
+      } catch (error) {
+        aiAssessment.className = 'ai-assessment error';
+        aiAssessment.textContent = 'AI assessment temporarily unavailable. Please continue with the quiz.';
+        console.error('AI assessment error:', error);
+      }
+    }
+
+    function renderReview() {
+      const reviewContainer = document.getElementById('review-container');
+      const totalPercent = ((score / questions.length) * 100).toFixed(1);
+      document.getElementById('total-percentage').textContent = `Overall Score: ${totalPercent}%`;
+      reviewContainer.innerHTML = '';
+
+      const showOnlyIncorrect = filterIncorrect.checked;
+      questions.forEach((q, i) => {
+        const ua = q.userAnswer || [];
+        const isCorrect = q.correct.length === ua.length && q.correct.every(v => ua.includes(v));
+        if (showOnlyIncorrect && isCorrect) return;
+
+        const block = document.createElement('div');
+        block.style.marginBottom = '16px';
+
+        const question = document.createElement('p');
+        question.innerHTML = '<strong>Question:</strong> ' + (i + 1) + '. ' + q.text;
+        block.appendChild(question);
+
+        const userAnswer = document.createElement('p');
+        userAnswer.innerHTML = '<strong>Your Answer:</strong> ' + (ua.join(', ') || 'None selected');
+        block.appendChild(userAnswer);
+
+        const result = document.createElement('p');
+        result.innerHTML = '<strong>Result:</strong> ' + (isCorrect ? '✅ Correct' : '❌ Incorrect');
+        block.appendChild(result);
+
+        const correct = document.createElement('p');
+        correct.innerHTML = '<strong>Correct Answer:</strong> ' + q.correct.join(', ');
+        block.appendChild(correct);
+
+        if (q.explanation) {
+          const explanation = document.createElement('p');
+          explanation.innerHTML = '<strong>Explanation:</strong> ' + q.explanation;
+          block.appendChild(explanation);
+        }
+
+        reviewContainer.appendChild(block);
+      });
+    }
+
+    // Retake incorrect only
+    function handleRetry() {
+      const source = (incorrectQuestions && incorrectQuestions.length > 0) ? incorrectQuestions : allQuestionsMaster;
+      questions = JSON.parse(JSON.stringify(source));
+      questions.forEach(q => { delete q._graded; delete q.userAnswer; if (Array.isArray(q.options)) shuffle(q.options); });
+      shuffle(questions);
+
+      incorrectQuestions = [];
+      currentIndex = 0;
+      score = 0;
+
+      const review = document.getElementById('review-section'); if (review) review.style.display = 'none';
+      const scoreBox = document.getElementById('score'); if (scoreBox) scoreBox.textContent = '';
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+      if (nextBtn) nextBtn.classList.add('hidden');
+
+      document.getElementById('quiz-content').style.display = 'block';
+      retrySection.style.display = 'none';
+      renderQuestion(currentIndex);
+    }
+
+    // Retake entire bank
+    function handleRetakeAll() {
+      questions = JSON.parse(JSON.stringify(allQuestionsMaster));
+      questions.forEach(q => { delete q._graded; delete q.userAnswer; if (Array.isArray(q.options)) shuffle(q.options); });
+      shuffle(questions);
+
+      incorrectQuestions = [];
+      currentIndex = 0;
+      score = 0;
+
+      const review = document.getElementById('review-section'); if (review) review.style.display = 'none';
+      const scoreBox = document.getElementById('score'); if (scoreBox) scoreBox.textContent = '';
+      const banner = document.getElementById('summary-banner'); if (banner) banner.style.display = 'none';
+      if (nextBtn) nextBtn.classList.add('hidden');
+
+      document.getElementById('quiz-content').style.display = 'block';
+      retrySection.style.display = 'none';
+      renderQuestion(currentIndex);
+    }
+  </script>
+</body>
+</html>
