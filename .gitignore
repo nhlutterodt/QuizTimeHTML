@@ -1,0 +1,29 @@
+# Ignore environment files
+.env
+.env.*
+
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Misc
+*.log
+
+# Do not commit sensitive data
+# If you have an API key in history, rotate it immediately and ensure .env is excluded from commits.
