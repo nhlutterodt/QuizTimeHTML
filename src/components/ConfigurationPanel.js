@@ -2,6 +2,8 @@
 import { DOMHelpers } from '../utils/DOMHelpers.js';
 import { ValidationHelpers } from '../utils/ValidationHelpers.js';
 import { EventManager } from '../utils/EventManager.js';
+import QuestionSupplementManager from '../services/QuestionSupplementManager.js';
+import SupplementationDialog from './SupplementationDialog.js';
 
 export class ConfigurationPanel {
   constructor(container, storageService, apiService, notifications) {
@@ -13,6 +15,11 @@ export class ConfigurationPanel {
     this.config = {};
     this.csvData = null;
     this.isVisible = false;
+    
+    // These will be set by QuizApp after initialization
+    this.apiKeyManager = null;
+    this.supplementManager = null;
+    this.supplementDialog = null;
   }
 
   /**
@@ -1038,14 +1045,147 @@ export class ConfigurationPanel {
   }
 
   /**
-   * Start quiz with current configuration
+   * Get the count of available questions based on current filters
+   * @returns {number} Number of available questions
    */
-  startQuiz() {
-    if (!this.csvData) {
-      this.showStatus('csvStatus', 'Please upload a CSV file first', 'error');
-      return;
+  getAvailableQuestionCount() {
+    if (!this.csvData || !Array.isArray(this.csvData)) {
+      return 0;
     }
 
+    // Apply section filter if specified
+    const sectionFilter = this.config.sectionFilter;
+    if (sectionFilter && sectionFilter !== 'all') {
+      return this.csvData.filter(q => q.Section === sectionFilter).length;
+    }
+
+    return this.csvData.length;
+  }
+
+  /**
+   * Handle question shortage by showing supplementation dialog
+   * @param {number} requestedCount - Number of questions requested
+   * @param {number} availableCount - Number of questions available
+   */
+  async handleQuestionShortage(requestedCount, availableCount) {
+    const missingCount = requestedCount - availableCount;
+    
+    // Check if AI is available
+    const hasValidAPIKey = this.apiKeyManager ? this.apiKeyManager.isAvailable() : false;
+    const aiStatus = this.apiKeyManager ? this.apiKeyManager.getStatus() : { provider: 'OpenAI' };
+    const provider = aiStatus.provider || 'OpenAI';
+
+    // Show supplementation dialog
+    this.supplementDialog.show({
+      requested: requestedCount,
+      available: availableCount,
+      provider: provider,
+      hasValidAPIKey: hasValidAPIKey,
+      callbacks: {
+        onConfirm: (result) => this.handleSupplementationConfirm(result),
+        onCancel: () => this.handleSupplementationCancel(),
+        onConfigureAPI: () => this.handleConfigureAPI()
+      }
+    });
+  }
+
+  /**
+   * Handle supplementation confirmation
+   * @param {Object} result - User's choice and configuration
+   */
+  async handleSupplementationConfirm(result) {
+    if (result.action === 'useAvailable') {
+      // Proceed with available questions only
+      this.config.numQuestions = result.available;
+      this.proceedWithQuiz();
+    } else if (result.action === 'generate') {
+      // Generate missing questions with AI
+      await this.generateMissingQuestions(result);
+    }
+  }
+
+  /**
+   * Handle supplementation cancellation
+   */
+  handleSupplementationCancel() {
+    // User cancelled, return to configuration
+    this.showStatus('csvStatus', 'Quiz start cancelled - please adjust question count or upload more questions', 'info');
+  }
+
+  /**
+   * Handle API configuration request
+   */
+  handleConfigureAPI() {
+    // Focus on API key management section (this would need to be implemented based on your UI)
+    this.showStatus('csvStatus', 'Please configure your AI provider API key in the AI Assessment section', 'info');
+    
+    // If there's an API key manager UI, focus on it
+    if (this.apiKeyManager && typeof this.apiKeyManager.show === 'function') {
+      this.apiKeyManager.show();
+    }
+  }
+
+  /**
+   * Generate missing questions using AI
+   * @param {Object} options - Generation options from user
+   */
+  async generateMissingQuestions(options) {
+    try {
+      this.supplementDialog.showLoadingState();
+      this.showStatus('csvStatus', 'Generating missing questions with AI...', 'info');
+
+      // Generate questions using the supplement manager
+      const result = await this.supplementManager.supplementQuestions(
+        this.csvData,
+        options.missing,
+        {
+          persist: options.persist,
+          provider: this.apiKeyManager?.getStatus()?.provider || 'openai'
+        }
+      );
+
+      if (result.success && result.questions.length > 0) {
+        // Add generated questions to CSV data
+        if (options.persist) {
+          this.csvData = [...this.csvData, ...result.questions];
+          this.updateSectionFilter(this.csvData);
+          
+          // Update max questions
+          document.getElementById('numQuestions').max = this.csvData.length;
+        }
+
+        this.supplementDialog.showGenerationResult(result);
+        this.showStatus('csvStatus', 
+          `Successfully generated ${result.questions.length} questions. Starting quiz...`, 'success');
+
+        // Proceed with quiz after a short delay
+        setTimeout(() => {
+          this.proceedWithQuiz();
+        }, 2000);
+
+      } else {
+        // Show error in dialog
+        this.supplementDialog.showGenerationResult({
+          success: false,
+          error: result.error || 'Failed to generate questions'
+        });
+        this.showStatus('csvStatus', `Question generation failed: ${result.error}`, 'error');
+      }
+
+    } catch (error) {
+      console.error('Question generation error:', error);
+      this.supplementDialog.showGenerationResult({
+        success: false,
+        error: error.message || 'Unknown error during generation'
+      });
+      this.showStatus('csvStatus', `Question generation failed: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Proceed with quiz using current configuration and data
+   */
+  proceedWithQuiz() {
     // Save configuration first
     this.saveConfiguration();
 
@@ -1056,6 +1196,48 @@ export class ConfigurationPanel {
         csvData: this.csvData
       }
     }));
+  }
+
+  /**
+   * Start quiz with current configuration
+   */
+  async startQuiz() {
+    // Check if we have questions either from CSV upload or question bank
+    const hasCSVData = this.csvData && Array.isArray(this.csvData) && this.csvData.length > 0;
+    
+    if (!hasCSVData) {
+      // Try to get questions from question bank
+      try {
+        const questionBankStats = await this.apiService.getQuestionBankStats();
+        if (questionBankStats.success && questionBankStats.totalQuestions > 0) {
+          // Use question bank questions
+          const questionsResponse = await this.apiService.request('/api/question-bank/questions');
+          this.csvData = questionsResponse.questions || [];
+          console.log(`📚 Using ${this.csvData.length} questions from question bank`);
+        } else {
+          this.showStatus('csvStatus', 'Please upload a CSV file first or ensure question bank has questions', 'error');
+          return;
+        }
+      } catch (error) {
+        this.showStatus('csvStatus', 'Please upload a CSV file first', 'error');
+        return;
+      }
+    }
+
+    // Get requested number of questions
+    const requestedCount = parseInt(document.getElementById('numQuestions').value) || 10;
+    const availableCount = this.getAvailableQuestionCount();
+
+    console.log(`🎯 Quiz start requested: ${requestedCount} questions, ${availableCount} available`);
+
+    // Check for question shortage
+    if (requestedCount > availableCount) {
+      await this.handleQuestionShortage(requestedCount, availableCount);
+      return; // Stop normal flow - dialog will handle next steps
+    }
+
+    // Sufficient questions available - proceed normally
+    this.proceedWithQuiz();
   }
 
   /**

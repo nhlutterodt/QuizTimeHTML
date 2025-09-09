@@ -404,6 +404,23 @@ export class APIService {
       };
     }
   }
+
+  /**
+   * Request AI question supplementation
+   * @param {Object} options - Supplementation request options
+   * @returns {Promise<Object>} Supplementation result
+   */
+  async supplementQuestions(options) {
+    try {
+      return await this.request('/api/supplement-questions', {
+        method: 'POST',
+        body: JSON.stringify(options)
+      });
+    } catch (error) {
+      console.error('Question supplementation failed:', error);
+      throw error;
+    }
+  }
 }
 
 /**

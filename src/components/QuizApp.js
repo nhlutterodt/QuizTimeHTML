@@ -10,6 +10,8 @@ import { APIKeyManager } from './APIKeyManager.js';
 import { ResultsManager } from './ResultsManager.js';
 import { EventManager } from '../utils/EventManager.js';
 import { DOMHelpers } from '../utils/DOMHelpers.js';
+import QuestionSupplementManager from '../services/QuestionSupplementManager.js';
+import SupplementationDialog from './SupplementationDialog.js';
 
 export class QuizApp {
   constructor() {
@@ -236,6 +238,11 @@ export class QuizApp {
     // API Key Manager
     this.apiKeyManager = new APIKeyManager();
     this.apiKeyManager.initialize();
+
+    // Update ConfigurationPanel with apiKeyManager after it's initialized
+    this.configPanel.apiKeyManager = this.apiKeyManager;
+    this.configPanel.supplementManager = new QuestionSupplementManager(this.apiService);
+    this.configPanel.supplementDialog = new SupplementationDialog(this.apiKeyManager);
 
     // Timer Manager
     this.timerManager = new TimerManager();
