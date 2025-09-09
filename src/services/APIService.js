@@ -1,4 +1,4 @@
-// API Service - Handles all server communication
+// API Service - Enhanced with Professional Question Bank Integration
 export class APIService {
   constructor() {
     this.baseURL = window.location.origin;
@@ -43,6 +43,165 @@ export class APIService {
       );
     }
   }
+
+  // ============================================
+  // ENHANCED QUESTION BANK API METHODS
+  // ============================================
+
+  /**
+   * Upload multiple CSV files to question bank
+   */
+  async uploadCSVsToQuestionBank(files, options = {}) {
+    const formData = new FormData();
+    
+    // Add files
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    
+    // Add options
+    formData.append('options', JSON.stringify({
+      mergeStrategy: options.mergeStrategy || 'skip',
+      strictness: options.strictness || 'lenient',
+      owner: options.owner || 'user',
+      tags: options.tags || [],
+      autoCorrect: options.autoCorrect !== false
+    }));
+
+    try {
+      const response = await fetch(`${this.baseURL}/api/upload-csvs`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new APIError(
+          errorData.error || 'Multi-CSV upload failed',
+          response.status,
+          errorData
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Multi-CSV upload failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get question bank statistics
+   */
+  async getQuestionBankStats() {
+    try {
+      return await this.request('/api/question-bank/stats');
+    } catch (error) {
+      console.error('Failed to get question bank stats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export question bank in various formats
+   */
+  async exportQuestionBank(format = 'csv', options = {}) {
+    try {
+      const queryParams = new URLSearchParams({
+        format,
+        ...options
+      });
+      
+      const response = await fetch(`${this.baseURL}/api/question-bank/export?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new APIError('Export failed', response.status);
+      }
+
+      if (format === 'json') {
+        return await response.json();
+      } else {
+        return await response.text();
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Migrate existing questions to question bank
+   */
+  async migrateExistingQuestions() {
+    try {
+      return await this.request('/api/migrate-existing-questions', {
+        method: 'POST'
+      });
+    } catch (error) {
+      console.error('Migration failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search questions in the bank
+   */
+  async searchQuestions(searchParams = {}) {
+    try {
+      const queryParams = new URLSearchParams({
+        category: searchParams.category || '',
+        difficulty: searchParams.difficulty || '',
+        tags: (searchParams.tags || []).join(','),
+        search: searchParams.search || '',
+        limit: searchParams.limit || 50,
+        offset: searchParams.offset || 0
+      });
+
+      return await this.request(`/api/question-bank/search?${queryParams}`);
+    } catch (error) {
+      console.error('Question search failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add or update a single question
+   */
+  async saveQuestion(questionData, isUpdate = false) {
+    try {
+      const endpoint = isUpdate ? 
+        `/api/question-bank/questions/${questionData.id}` : 
+        '/api/question-bank/questions';
+      
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      return await this.request(endpoint, {
+        method,
+        body: JSON.stringify(questionData)
+      });
+    } catch (error) {
+      console.error('Save question failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a question from the bank
+   */
+  async deleteQuestion(questionId) {
+    try {
+      return await this.request(`/api/question-bank/questions/${questionId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Delete question failed:', error);
+      throw error;
+    }
+  }
+
+  // ============================================
+  // EXISTING AI ASSESSMENT METHODS (Enhanced)
+  // ============================================
 
   /**
    * Check if AI assessment is available

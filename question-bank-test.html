@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question Bank Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; white-space: pre-wrap; }
+        input[type="file"] { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Question Bank Test Page</h1>
+    
+    <div class="section">
+        <h2>1. Migration Test</h2>
+        <button onclick="migrateExisting()">Migrate Existing Questions.csv</button>
+        <div id="migrationResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Question Bank Stats</h2>
+        <button onclick="getStats()">Get Question Bank Stats</button>
+        <div id="statsResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Multi-CSV Upload Test</h2>
+        <input type="file" id="csvFiles" multiple accept=".csv">
+        <br>
+        <select id="mergeStrategy">
+            <option value="skip">Skip Duplicates</option>
+            <option value="overwrite">Overwrite Existing</option>
+            <option value="force">Force New</option>
+            <option value="merge">Merge Fields</option>
+        </select>
+        <br>
+        <button onclick="uploadCSVs()">Upload CSV Files</button>
+        <div id="uploadResult" class="result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Export Question Bank</h2>
+        <button onclick="exportJSON()">Export as JSON</button>
+        <button onclick="exportCSV()">Export as CSV</button>
+        <div id="exportResult" class="result"></div>
+    </div>
+
+    <script>
+        async function migrateExisting() {
+            const resultDiv = document.getElementById('migrationResult');
+            resultDiv.textContent = 'Migrating...';
+            
+            try {
+                const response = await fetch('/api/migrate-existing-questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function getStats() {
+            const resultDiv = document.getElementById('statsResult');
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/api/question-bank/stats');
+                const result = await response.json();
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function uploadCSVs() {
+            const resultDiv = document.getElementById('uploadResult');
+            const fileInput = document.getElementById('csvFiles');
+            const mergeStrategy = document.getElementById('mergeStrategy').value;
+            
+            if (!fileInput.files.length) {
+                resultDiv.textContent = 'Please select CSV files to upload';
+                return;
+            }
+            
+            resultDiv.textContent = 'Uploading...';
+            
+            try {
+                const formData = new FormData();
+                
+                // Add files
+                for (const file of fileInput.files) {
+                    formData.append('files', file);
+                }
+                
+                // Add options
+                formData.append('options', JSON.stringify({
+                    mergeStrategy: mergeStrategy,
+                    strictness: 'lenient',
+                    owner: 'test-user'
+                }));
+                
+                const response = await fetch('/api/upload-csvs', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function exportJSON() {
+            const resultDiv = document.getElementById('exportResult');
+            resultDiv.textContent = 'Exporting...';
+            
+            try {
+                const response = await fetch('/api/question-bank/export?format=json');
+                const result = await response.json();
+                
+                // Create download link
+                const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'question_bank.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                resultDiv.textContent = 'JSON export downloaded!';
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function exportCSV() {
+            const resultDiv = document.getElementById('exportResult');
+            resultDiv.textContent = 'Exporting...';
+            
+            try {
+                const response = await fetch('/api/question-bank/export?format=csv');
+                const csvData = await response.text();
+                
+                // Create download link
+                const blob = new Blob([csvData], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'question_bank.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                resultDiv.textContent = 'CSV export downloaded!';
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

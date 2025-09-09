@@ -1,31 +1,77 @@
-// Question Service - Manages question data and operations
+// Question Service - Enhanced with Professional Integration
+import QuestionSchema from '../models/QuestionSchema.js';
+import IntegratedQuestionManager from './IntegratedQuestionManager.js';
 import { ValidationHelpers } from '../utils/ValidationHelpers.js';
 import { DOMHelpers } from '../utils/DOMHelpers.js';
-import { CSVQuestionManager } from '../data/csv-manager.js';
 
 export class QuestionService {
-  constructor() {
-    this.questions = [];
+  constructor(storageService = null) {
+    this.questionManager = new IntegratedQuestionManager(storageService);
     this.currentQuestionIndex = 0;
     this.userAnswers = [];
+    this.activeQuestions = [];
     this.sectionQuestions = {};
     this.currentSection = null;
-    this.csvManager = new CSVQuestionManager();
+    
+    // Initialize manager
+    this.initializeManager();
   }
 
   /**
-   * Load questions from CSV data
+   * Initialize the integrated question manager
    */
-  async loadQuestionsFromCSV(csvData) {
+  async initializeManager() {
     try {
-      // Validate CSV data
-      const validation = ValidationHelpers.validateCSVData(csvData);
-      if (!validation.isValid) {
-        throw new Error(`CSV validation failed: ${validation.errors.join(', ')}`);
+      await this.questionManager.initialize();
+      
+      // Listen for changes
+      this.questionManager.onChange((action, data) => {
+        console.log(`📢 Question bank ${action}:`, data);
+        // Update active questions when bank changes
+        if (['imported', 'added', 'updated', 'deleted'].includes(action)) {
+          this.refreshActiveQuestions();
+        }
+      });
+      
+      // Load initial questions into active set
+      this.refreshActiveQuestions();
+      
+    } catch (error) {
+      console.warn('Failed to initialize question manager:', error);
+    }
+  }
+
+  /**
+   * Refresh active questions from the manager
+   */
+  refreshActiveQuestions() {
+    this.activeQuestions = this.questionManager.getAllQuestions();
+    this.groupQuestionsBySection();
+    console.log(`🔄 Refreshed ${this.activeQuestions.length} active questions`);
+  }
+
+  /**
+   * Load questions from CSV data with enhanced integration
+   */
+  async loadQuestionsFromCSV(csvData, options = {}) {
+    try {
+      // If csvData is string, treat as CSV content
+      if (typeof csvData === 'string') {
+        const result = await this.questionManager.importFromCSV(csvData, {
+          mergeStrategy: 'overwrite', // Replace existing for direct loads
+          autoCorrect: true,
+          strictValidation: false,
+          ...options
+        });
+        
+        this.activeQuestions = this.questionManager.getAllQuestions();
+        console.log(`✅ Loaded ${this.activeQuestions.length} questions from CSV content`);
+        
+        return result;
       }
 
-      // Use CSV manager to parse and convert data
-      this.questions = csvData.map((row, index) => {
+      // Legacy support: handle array of objects
+      const questions = csvData.map((row, index) => {
         const options = [
           row['Option A'],
           row['Option B'], 
@@ -33,30 +79,75 @@ export class QuestionService {
           row['Option D']
         ].filter(option => option && option.trim() !== '');
 
-        const correctLetter = row['Correct Answer'].toUpperCase();
+        const correctLetter = row['Correct Answer']?.toUpperCase();
         const correctAnswer = ['A', 'B', 'C', 'D'].indexOf(correctLetter);
 
-        return {
+        // Convert to current schema format
+        return QuestionSchema.createDefault({
           id: index + 1,
           question: row.Question,
           options: options,
-          answer: correctAnswer,
-          section: row.Section || 'General',
+          correct_answer: correctLetter,
+          category: row.Section || row.Category || 'General',
           difficulty: row.Difficulty || 'Medium',
           explanation: row.Explanation || '',
-          tags: row.Tags ? row.Tags.split(',').map(tag => tag.trim()) : []
-        };
+          tags: row.Tags ? row.Tags.split(',').map(tag => tag.trim()) : [],
+          type: 'multiple_choice',
+          source: {
+            format: 'legacy_csv',
+            created: new Date().toISOString()
+          }
+        });
       });
 
-      // Group questions by section
+      // Load into manager
+      await this.questionManager.loadFromData(questions);
+      this.activeQuestions = this.questionManager.getAllQuestions();
+      
+      // Group questions by section for compatibility
       this.groupQuestionsBySection();
       
-      console.log(`Loaded ${this.questions.length} questions from CSV`);
-      return this.questions;
+      console.log(`✅ Loaded ${this.activeQuestions.length} questions from legacy CSV format`);
+      return { questions: this.activeQuestions };
+      
     } catch (error) {
       console.error('Error loading questions from CSV:', error);
       throw error;
     }
+  }
+
+  /**
+   * Import questions from multiple CSV sources
+   */
+  async importMultipleCSVs(csvFiles, options = {}) {
+    const results = [];
+    
+    for (const file of csvFiles) {
+      try {
+        const result = await this.questionManager.importFromCSV(file.content, {
+          ...options,
+          uploadId: file.uploadId,
+          owner: file.owner || 'user'
+        });
+        
+        results.push({
+          filename: file.filename,
+          ...result
+        });
+        
+      } catch (error) {
+        results.push({
+          filename: file.filename,
+          error: error.message
+        });
+      }
+    }
+    
+    // Update active questions
+    this.activeQuestions = this.questionManager.getAllQuestions();
+    this.groupQuestionsBySection();
+    
+    return results;
   }
 
   /**

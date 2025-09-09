@@ -9,12 +9,18 @@
     "test": "node server.js --test",
     "stop": "taskkill /F /IM node.exe 2>nul || true"
   },
-  "keywords": ["quiz", "openai", "express", "education"],
+  "keywords": [
+    "quiz",
+    "openai",
+    "express",
+    "education"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -1,0 +1,266 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "category": "Math",
+      "difficulty": "Easy",
+      "type": "multiple_choice",
+      "question": "What is 2 + 2?",
+      "option_a": "2",
+      "option_b": "3",
+      "option_c": "4",
+      "option_d": "5",
+      "correct_answer": "C",
+      "explanation": "Basic addition: 2 + 2 = 4",
+      "points": 1,
+      "time_limit": 30,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 0,
+        "originalId": "1",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 2,
+      "category": "Math",
+      "difficulty": "Medium",
+      "type": "multiple_choice",
+      "question": "What is the square root of 144?",
+      "option_a": "10",
+      "option_b": "11",
+      "option_c": "12",
+      "option_d": "13",
+      "correct_answer": "C",
+      "explanation": "The square root of 144 is 12 because 12 × 12 = 144",
+      "points": 2,
+      "time_limit": 45,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 1,
+        "originalId": "2",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 3,
+      "category": "Science",
+      "difficulty": "Easy",
+      "type": "multiple_choice",
+      "question": "What planet is closest to the Sun?",
+      "option_a": "Venus",
+      "option_b": "Earth",
+      "option_c": "Mercury",
+      "option_d": "Mars",
+      "correct_answer": "C",
+      "explanation": "Mercury is the closest planet to the Sun in our solar system",
+      "points": 1,
+      "time_limit": 30,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 2,
+        "originalId": "3",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 4,
+      "category": "Science",
+      "difficulty": "Medium",
+      "type": "multiple_choice",
+      "question": "What is the chemical symbol for gold?",
+      "option_a": "Go",
+      "option_b": "Au",
+      "option_c": "Ag",
+      "option_d": "Gd",
+      "correct_answer": "B",
+      "explanation": "Au is the chemical symbol for gold from the Latin word aurum",
+      "points": 2,
+      "time_limit": 45,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 3,
+        "originalId": "4",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 5,
+      "category": "History",
+      "difficulty": "Easy",
+      "type": "multiple_choice",
+      "question": "In which year did World War II end?",
+      "option_a": "1944",
+      "option_b": "1945",
+      "option_c": "1946",
+      "option_d": "1947",
+      "correct_answer": "B",
+      "explanation": "World War II ended in 1945 with the surrender of Japan",
+      "points": 1,
+      "time_limit": 30,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 4,
+        "originalId": "5",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 6,
+      "category": "History",
+      "difficulty": "Medium",
+      "type": "multiple_choice",
+      "question": "Who was the first President of the United States?",
+      "option_a": "Thomas Jefferson",
+      "option_b": "John Adams",
+      "option_c": "George Washington",
+      "option_d": "Benjamin Franklin",
+      "correct_answer": "C",
+      "explanation": "George Washington was the first President of the United States (1789-1797)",
+      "points": 2,
+      "time_limit": 45,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 5,
+        "originalId": "6",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 7,
+      "category": "Geography",
+      "difficulty": "Easy",
+      "type": "multiple_choice",
+      "question": "What is the capital of France?",
+      "option_a": "London",
+      "option_b": "Berlin",
+      "option_c": "Madrid",
+      "option_d": "Paris",
+      "correct_answer": "D",
+      "explanation": "Paris is the capital and largest city of France",
+      "points": 1,
+      "time_limit": 30,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 6,
+        "originalId": "7",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 8,
+      "category": "Geography",
+      "difficulty": "Medium",
+      "type": "multiple_choice",
+      "question": "Which river is the longest in the world?",
+      "option_a": "Amazon",
+      "option_b": "Nile",
+      "option_c": "Mississippi",
+      "option_d": "Yangtze",
+      "correct_answer": "B",
+      "explanation": "The Nile River is considered the longest river in the world at about 4132 miles",
+      "points": 2,
+      "time_limit": 45,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 7,
+        "originalId": "8",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 9,
+      "category": "Literature",
+      "difficulty": "Easy",
+      "type": "multiple_choice",
+      "question": "Who wrote Romeo and Juliet?",
+      "option_a": "Charles Dickens",
+      "option_b": "Mark Twain",
+      "option_c": "William Shakespeare",
+      "option_d": "Jane Austen",
+      "correct_answer": "C",
+      "explanation": "William Shakespeare wrote the famous tragedy Romeo and Juliet",
+      "points": 1,
+      "time_limit": 30,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 8,
+        "originalId": "9",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    },
+    {
+      "id": 10,
+      "category": "Literature",
+      "difficulty": "Medium",
+      "type": "multiple_choice",
+      "question": "What is the first book in the Harry Potter series?",
+      "option_a": "Chamber of Secrets",
+      "option_b": "Philosopher's Stone",
+      "option_c": "Prisoner of Azkaban",
+      "option_d": "Goblet of Fire",
+      "correct_answer": "B",
+      "explanation": "Harry Potter and the Philosopher's Stone (or Sorcerer's Stone in the US) is the first book",
+      "points": 2,
+      "time_limit": 45,
+      "source": {
+        "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+        "filename": "questions.csv (migration)",
+        "rowIndex": 9,
+        "originalId": "10",
+        "uploadedAt": "2025-09-09T18:01:01.266Z"
+      }
+    }
+  ],
+  "uploads": [
+    {
+      "uploadId": "bef76244-8ea9-4b7c-9f16-579b1dedb81a",
+      "timestamp": "2025-09-09T18:01:01.266Z",
+      "userId": "system",
+      "filesCount": 1,
+      "options": {
+        "mergeStrategy": "skip",
+        "type": "migration"
+      },
+      "summary": {
+        "processed": 10,
+        "added": 10,
+        "updated": 0,
+        "skipped": 0,
+        "errors": []
+      }
+    },
+    {
+      "uploadId": "45e3358f-c994-4d42-864d-98e7ddc049a1",
+      "timestamp": "2025-09-09T18:12:07.315Z",
+      "userId": "system",
+      "filesCount": 1,
+      "options": {
+        "mergeStrategy": "skip",
+        "type": "migration"
+      },
+      "summary": {
+        "processed": 10,
+        "added": 0,
+        "updated": 0,
+        "skipped": 10,
+        "errors": []
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2025-09-09T00:00:00.000Z",
+    "lastUpdated": "2025-09-09T18:12:07.315Z",
+    "version": "1.0.0",
+    "totalQuestions": 10
+  }
+}

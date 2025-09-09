@@ -1,4 +1,4 @@
-// Main Quiz Application Orchestrator
+// Main Quiz Application Orchestrator - Enhanced with Professional Integration
 import { QuestionService } from '../services/QuestionService.js';
 import { APIService } from '../services/APIService.js';
 import { StorageService } from '../services/StorageService.js';
@@ -13,10 +13,10 @@ import { DOMHelpers } from '../utils/DOMHelpers.js';
 
 export class QuizApp {
   constructor() {
-    // Initialize services
-    this.questionService = new QuestionService();
-    this.apiService = new APIService();
+    // Initialize services with professional integration
     this.storageService = new StorageService();
+    this.questionService = new QuestionService(this.storageService); // Pass storage service
+    this.apiService = new APIService();
     this.eventManager = new EventManager();
     
     // Initialize components
@@ -31,6 +31,7 @@ export class QuizApp {
     this.currentState = 'configuration'; // configuration, quiz, results
     this.quizConfig = {};
     this.isQuizActive = false;
+    this.questionBankLoaded = false;
     
     // DOM elements
     this.containers = {};
@@ -144,18 +145,72 @@ export class QuizApp {
   }
 
   /**
-   * Initialize services
+   * Initialize services with professional integration
    */
   async initializeServices() {
-    // Check storage availability
-    if (!this.storageService.isLocalStorageAvailable()) {
-      console.warn('LocalStorage not available - some features may be limited');
-    }
+    try {
+      console.log('🔧 Initializing services...');
+      
+      // Check storage availability
+      if (!this.storageService.isLocalStorageAvailable()) {
+        console.warn('LocalStorage not available - some features may be limited');
+      }
 
-    // Check API health
-    const healthStatus = await this.apiService.getHealthStatus();
-    if (!healthStatus.healthy) {
-      console.warn('API service may be unavailable:', healthStatus.error);
+      // Initialize question service with storage integration
+      // Note: QuestionService constructor already passed storageService,
+      // but we need to explicitly initialize the manager
+      await this.questionService.initializeManager();
+      this.questionBankLoaded = true;
+      
+      // Check if we have questions in the bank
+      const questionCount = this.questionService.questionManager.getAllQuestions().length;
+      console.log(`📚 Question bank loaded with ${questionCount} questions`);
+      
+      // If no questions, try to migrate from legacy CSV
+      if (questionCount === 0) {
+        await this.attemptLegacyMigration();
+      }
+
+      // Check API health
+      const healthStatus = await this.apiService.getHealthStatus();
+      if (!healthStatus.healthy) {
+        console.warn('API service may be unavailable:', healthStatus.error);
+      }
+      
+      console.log('✅ Services initialized successfully');
+    } catch (error) {
+      console.error('❌ Service initialization failed:', error);
+      this.questionBankLoaded = false;
+      // Continue with degraded functionality
+    }
+  }
+
+  /**
+   * Attempt to migrate from legacy questions.csv
+   */
+  async attemptLegacyMigration() {
+    try {
+      console.log('🔄 Attempting legacy migration...');
+      const migrationResult = await this.apiService.migrateExistingQuestions();
+      
+      if (migrationResult.success && migrationResult.summary.added > 0) {
+        const added = migrationResult.summary.added;
+        console.log(`✅ Migrated ${added} questions from legacy CSV`);
+        this.showSuccess(`Successfully migrated ${added} questions from legacy CSV to the professional question bank.`);
+        
+        // Show detailed results if available
+        if (migrationResult.summary.errors && migrationResult.summary.errors.length > 0) {
+          this.showWarning(`${migrationResult.summary.errors.length} questions had issues during migration. Check console for details.`);
+        }
+        
+        // Refresh question service
+        this.questionService.refreshActiveQuestions();
+      } else {
+        console.log('ℹ️ No legacy questions found to migrate');
+      }
+    } catch (error) {
+      console.warn('⚠️ Legacy migration failed:', error);
+      this.showWarning('Legacy question migration failed, but you can still upload CSV files manually.');
     }
   }
 
@@ -164,9 +219,17 @@ export class QuizApp {
    */
   initializeComponents() {
     // Configuration Panel
+    // Configuration Panel with professional API integration
     this.configPanel = new ConfigurationPanel(
       this.containers.configuration,
-      this.storageService
+      this.storageService,
+      this.apiService,
+      {
+        showSuccess: (msg) => this.showSuccess(msg),
+        showWarning: (msg) => this.showWarning(msg),
+        showError: (msg) => this.showError(msg),
+        refreshQuestions: () => this.questionService.refreshActiveQuestions()
+      }
     );
     this.configPanel.init();
 

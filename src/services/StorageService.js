@@ -163,7 +163,12 @@ export class StorageService {
       randomize: true,
       passingScore: 70,
       showCorrectAnswers: true,
-      enableAI: true
+      enableAI: true,
+      importLimits: {
+        maxFiles: 5,
+        maxTotalSizeMB: 10,
+        maxRowsPerFile: 1000
+      }
     });
   }
 
