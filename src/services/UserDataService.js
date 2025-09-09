@@ -33,7 +33,7 @@ export class UserDataService {
     // Start a new quiz session
     async startSession(metadata = {}) {
         try {
-            const response = await fetch('/api/user-session', {
+            const response = await fetch(`${window.location.origin}/api/user-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -65,7 +65,7 @@ export class UserDataService {
         if (!this.sessionId) return;
 
         try {
-            await fetch('/api/user-session', {
+            await fetch(`${window.location.origin}/api/user-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -116,7 +116,7 @@ export class UserDataService {
 
         // Send to server for processing and storage
         try {
-            await fetch('/api/assess', {
+            await fetch(`${window.location.origin}/api/assess`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -272,7 +272,7 @@ export class UserDataService {
 
         for (const response of pending) {
             try {
-                await fetch('/api/assess', {
+                await fetch(`${window.location.origin}/api/assess`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

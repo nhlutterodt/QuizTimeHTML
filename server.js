@@ -13,6 +13,21 @@ const fs = require('fs').promises;
 const crypto = require('crypto');
 
 const app = express();
+
+// CORS configuration for development
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json({ limit: '10mb' }));
 
 // Initialize user data storage
@@ -187,6 +202,14 @@ app.use(express.static(path.join(__dirname)));
 
 // API key management endpoint
 app.post('/api/configure-key', async (req, res) => {
+  console.log('🔑 Received API key configuration request:', {
+    method: req.method,
+    url: req.url,
+    provider: req.body?.provider,
+    action: req.body?.action,
+    hasApiKey: !!req.body?.apiKey
+  });
+  
   try {
     const { apiKey, provider, action } = req.body;
     

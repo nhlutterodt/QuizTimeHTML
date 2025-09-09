@@ -19,7 +19,7 @@ export class APIKeyManager {
             openai: {
                 name: 'OpenAI (ChatGPT)',
                 keyFormat: 'sk-...',
-                keyPattern: /^sk-[A-Za-z0-9]{48,}$/,
+                keyPattern: /^sk-[A-Za-z0-9_-]{20,}$/,
                 description: 'GPT-3.5 and GPT-4 models for intelligent assessment'
             },
             gemini: {
@@ -304,7 +304,8 @@ export class APIKeyManager {
         validateBtn.textContent = 'Validating...';
         
         try {
-            const response = await fetch('/api/configure-key', {
+            console.log('🔍 Validating API key with server...');
+            const response = await fetch(`${window.location.origin}/api/configure-key`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -314,7 +315,12 @@ export class APIKeyManager {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+
             const result = await response.json();
+            console.log('✅ Server validation response:', result);
 
             if (result.valid) {
                 this.apiKey = apiKey;
@@ -333,8 +339,15 @@ export class APIKeyManager {
             }
 
         } catch (error) {
-            console.error('Validation error:', error);
-            this.showValidationResult('❌ Network error during validation', 'error');
+            console.error('❌ Validation error details:', error);
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showValidationResult('❌ Network connection failed. Please check if the server is running on the correct port.', 'error');
+            } else if (error.message.includes('status:')) {
+                this.showValidationResult(`❌ Server error: ${error.message}`, 'error');
+            } else {
+                this.showValidationResult('❌ Network error during validation', 'error');
+            }
         }
 
         validateBtn.disabled = false;
@@ -466,7 +479,7 @@ export class APIKeyManager {
         this.updateUI();
 
         try {
-            const response = await fetch('/api/ai-status', {
+            const response = await fetch(`${window.location.origin}/api/ai-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: this.selectedProvider })
