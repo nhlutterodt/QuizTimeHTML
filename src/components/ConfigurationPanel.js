@@ -109,18 +109,6 @@ export class ConfigurationPanel {
             </div>
           </div>
 
-          <!-- AI Assessment -->
-          <div class="config-section">
-            <h3>AI Assessment</h3>
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="enableAI"> Enable AI-Powered Assessment
-              </label>
-              <small class="help-text">Get personalized feedback and recommendations</small>
-            </div>
-            <div id="aiStatus" class="status-message"></div>
-          </div>
-
           <!-- Filtering Options -->
           <div class="config-section">
             <h3>Question Filtering</h3>
@@ -170,7 +158,6 @@ export class ConfigurationPanel {
     document.getElementById('passingScore').value = this.config.passingScore;
     document.getElementById('randomize').checked = this.config.randomize;
     document.getElementById('showCorrectAnswers').checked = this.config.showCorrectAnswers;
-    document.getElementById('enableAI').checked = this.config.enableAI;
   }
 
   /**
@@ -183,7 +170,6 @@ export class ConfigurationPanel {
     const resetBtn = document.getElementById('resetConfig');
     const saveBtn = document.getElementById('saveConfig');
     const startBtn = document.getElementById('startQuiz');
-    const enableAI = document.getElementById('enableAI');
 
     // CSV file upload
     this.eventManager.on(csvFile, 'change', (e) => this.handleCSVUpload(e));
@@ -196,9 +182,6 @@ export class ConfigurationPanel {
     this.eventManager.on(resetBtn, 'click', () => this.resetToDefaults());
     this.eventManager.on(saveBtn, 'click', () => this.saveConfiguration());
     this.eventManager.on(startBtn, 'click', () => this.startQuiz());
-
-    // AI toggle
-    this.eventManager.on(enableAI, 'change', () => this.checkAIAvailability());
 
     // Real-time validation
     this.attachValidationListeners();
@@ -410,38 +393,6 @@ export class ConfigurationPanel {
   }
 
   /**
-   * Check AI availability
-   */
-  async checkAIAvailability() {
-    const enableAI = document.getElementById('enableAI');
-    const statusElement = document.getElementById('aiStatus');
-
-    if (!enableAI.checked) {
-      statusElement.textContent = '';
-      statusElement.className = 'status-message';
-      return;
-    }
-
-    try {
-      statusElement.textContent = 'Checking AI availability...';
-      statusElement.className = 'status-message info';
-
-      // This would call the API service to check AI availability
-      // For now, we'll simulate the check
-      const response = await fetch('/api/check-ai');
-      const result = await response.json();
-
-      if (result.available) {
-        this.showStatus('aiStatus', 'AI assessment is available', 'success');
-      } else {
-        this.showStatus('aiStatus', result.message || 'AI assessment is not available', 'warning');
-      }
-    } catch (error) {
-      this.showStatus('aiStatus', 'Unable to verify AI availability', 'warning');
-    }
-  }
-
-  /**
    * Show status message
    */
   showStatus(elementId, message, type = 'info') {
@@ -465,8 +416,7 @@ export class ConfigurationPanel {
         numQuestions: 10,
         randomize: true,
         passingScore: 70,
-        showCorrectAnswers: true,
-        enableAI: true
+        showCorrectAnswers: true
       };
       
       this.populateFormFields();
@@ -496,7 +446,6 @@ export class ConfigurationPanel {
       passingScore: parseInt(document.getElementById('passingScore').value) || 70,
       randomize: document.getElementById('randomize').checked,
       showCorrectAnswers: document.getElementById('showCorrectAnswers').checked,
-      enableAI: document.getElementById('enableAI').checked,
       section: document.getElementById('sectionFilter').value,
       difficulty: document.getElementById('difficultyFilter').value
     };

@@ -2,14 +2,33 @@
 export class APIKeyManager {
     constructor() {
         this.apiKey = null;
+        this.selectedProvider = null;
         this.aiStatus = {
             available: false,
+            enabled: false, // AI must be explicitly enabled
             checking: false,
             error: null,
-            lastChecked: null
+            lastChecked: null,
+            provider: null
         };
         this.statusCheckInterval = null;
         this.callbacks = [];
+        
+        // Supported AI providers
+        this.providers = {
+            openai: {
+                name: 'OpenAI (ChatGPT)',
+                keyFormat: 'sk-...',
+                keyPattern: /^sk-[A-Za-z0-9]{48,}$/,
+                description: 'GPT-3.5 and GPT-4 models for intelligent assessment'
+            },
+            gemini: {
+                name: 'Google Gemini',
+                keyFormat: 'AI...',
+                keyPattern: /^AI[A-Za-z0-9]{38}$/,
+                description: 'Google\'s Gemini Pro for comprehensive analysis'
+            }
+        };
     }
 
     // Subscribe to AI status changes
@@ -24,9 +43,26 @@ export class APIKeyManager {
 
     // Initialize the API key manager
     async initialize() {
-        await this.checkAIStatus();
-        this.startStatusPolling();
+        // Inject styles into the page
+        this.injectStyles();
+        
+        // Don't automatically check AI status - user must enable first
         this.createKeyManagementUI();
+        console.log('AI Assessment Manager initialized - disabled by default');
+    }
+
+    // Inject CSS styles into the page
+    injectStyles() {
+        // Check if styles are already injected
+        if (document.getElementById('api-key-manager-styles')) {
+            return;
+        }
+
+        const styleElement = document.createElement('style');
+        styleElement.id = 'api-key-manager-styles';
+        styleElement.textContent = API_KEY_MANAGER_STYLES;
+        document.head.appendChild(styleElement);
+        console.log('🎨 API Key Manager styles injected');
     }
 
     // Create the API key management interface
@@ -35,41 +71,72 @@ export class APIKeyManager {
         
         container.innerHTML = `
             <div class="api-key-manager">
+                <div class="ai-header">
+                    <h2>🤖 AI-Powered Assessment</h2>
+                    <div class="ai-toggle-section">
+                        <label class="ai-toggle">
+                            <input type="checkbox" id="ai-enabled-toggle" />
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Enable AI Assessment</span>
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="ai-status-indicator" id="ai-status-indicator">
                     <span class="status-dot" id="status-dot"></span>
-                    <span class="status-text" id="status-text">AI Status Unknown</span>
-                    <button class="status-refresh" id="status-refresh" title="Refresh AI Status">🔄</button>
+                    <span class="status-text" id="status-text">AI Assessment Disabled</span>
+                    <button class="status-refresh" id="status-refresh" title="Refresh AI Status" style="display: none;">🔄</button>
                 </div>
                 
-                <div class="api-key-section" id="api-key-section" style="display: none;">
-                    <h3>🔑 Configure OpenAI API Key</h3>
-                    <div class="key-input-group">
-                        <input 
-                            type="password" 
-                            id="api-key-input" 
-                            placeholder="sk-..." 
-                            class="api-key-input"
-                            autocomplete="off"
-                        />
-                        <button id="validate-key-btn" class="validate-btn">Validate Key</button>
-                        <button id="clear-key-btn" class="clear-btn">Clear</button>
+                <!-- AI Configuration section - hidden by default with CSS -->
+                <div class="ai-configuration" id="ai-configuration">
+                    <div class="provider-selection" id="provider-selection">
+                        <h3>1. Choose AI Provider</h3>
+                        <div class="provider-options">
+                            ${Object.entries(this.providers).map(([key, provider]) => `
+                                <label class="provider-option">
+                                    <input type="radio" name="ai-provider" value="${key}" id="provider-${key}">
+                                    <div class="provider-card">
+                                        <div class="provider-name">${provider.name}</div>
+                                        <div class="provider-description">${provider.description}</div>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
                     </div>
-                    <div class="key-info">
-                        <p>
-                            <span class="info-icon">ℹ️</span>
-                            Your API key is encrypted and never stored permanently. 
-                            Get your key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>
-                        </p>
+                    
+                    <!-- API Key section - hidden by default with CSS -->
+                    <div class="api-key-section" id="api-key-section">
+                        <h3>2. Configure API Key</h3>
+                        <div class="provider-info" id="provider-info"></div>
+                        <div class="key-input-group">
+                            <input 
+                                type="password" 
+                                id="api-key-input" 
+                                placeholder="Enter your API key..." 
+                                class="api-key-input"
+                                autocomplete="off"
+                            />
+                            <button id="validate-key-btn" class="validate-btn" disabled>Validate Key</button>
+                            <button id="clear-key-btn" class="clear-btn">Clear</button>
+                        </div>
+                        <div class="key-security-info">
+                            <span class="security-icon">🔒</span>
+                            <p>Your API key is encrypted and stored securely for this session only. It will never be saved permanently or shared.</p>
+                        </div>
+                        <div id="key-validation-result" class="validation-result"></div>
                     </div>
-                    <div id="key-validation-result" class="validation-result"></div>
-                </div>
-                
-                <div class="toggle-section">
-                    <label class="ai-toggle">
-                        <input type="checkbox" id="ai-enabled-toggle" />
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Enable AI Assessment</span>
-                    </label>
+                    
+                    <div class="ai-features-info">
+                        <h3>📊 What AI Assessment Provides:</h3>
+                        <ul class="features-list">
+                            <li>✨ Personalized feedback for each answer</li>
+                            <li>📈 Detailed performance analysis</li>
+                            <li>🎯 Study recommendations based on your weaknesses</li>
+                            <li>💡 Explanations for correct and incorrect answers</li>
+                            <li>📝 Overall quiz assessment with insights</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         `;
@@ -85,7 +152,7 @@ export class APIKeyManager {
         container.className = 'ai-config-container';
         
         // Insert at the top of the configuration panel
-        const configPanel = document.querySelector('.configuration-panel, .quiz-container');
+        const configPanel = document.querySelector('.configuration-container, .quiz-container, #configurationContainer');
         if (configPanel) {
             configPanel.insertBefore(container, configPanel.firstChild);
         } else {
@@ -102,6 +169,21 @@ export class APIKeyManager {
         const clearBtn = document.getElementById('clear-key-btn');
         const keyInput = document.getElementById('api-key-input');
         const aiToggle = document.getElementById('ai-enabled-toggle');
+
+        // AI Toggle
+        if (aiToggle) {
+            aiToggle.addEventListener('change', (e) => this.toggleAI(e.target.checked));
+        }
+
+        // Provider selection
+        const providerRadios = document.querySelectorAll('input[name="ai-provider"]');
+        providerRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.selectProvider(e.target.value);
+                }
+            });
+        });
 
         if (statusRefresh) {
             statusRefresh.addEventListener('click', () => this.checkAIStatus(true));
@@ -121,65 +203,103 @@ export class APIKeyManager {
                 if (e.key === 'Enter') this.validateAPIKey();
             });
         }
-
-        if (aiToggle) {
-            aiToggle.addEventListener('change', (e) => this.toggleAI(e.target.checked));
-        }
     }
 
-    // Handle API key input changes
+    // Handle provider selection
+    selectProvider(providerId) {
+        this.selectedProvider = providerId;
+        const provider = this.providers[providerId];
+        
+        if (!provider) {
+            console.error('Invalid provider selected:', providerId);
+            return;
+        }
+
+        // Show API key section using CSS class
+        const apiKeySection = document.getElementById('api-key-section');
+        apiKeySection.classList.add('visible');
+
+        // Update provider info
+        const providerInfo = document.getElementById('provider-info');
+        providerInfo.innerHTML = `
+            <div class="selected-provider-info">
+                <strong>${provider.name}</strong> selected
+                <p>Enter your API key in the format: <code>${provider.keyFormat}</code></p>
+                <p class="get-key-link">
+                    ${this.getProviderKeyLink(providerId)}
+                </p>
+            </div>
+        `;
+
+        // Update input placeholder
+        const keyInput = document.getElementById('api-key-input');
+        keyInput.placeholder = provider.keyFormat;
+        keyInput.value = ''; // Clear any existing value
+
+        // Update validation button
+        this.onKeyInputChange();
+        
+        console.log(`AI Provider selected: ${provider.name}`);
+    }
+
+    // Get provider-specific link for obtaining API keys
+    getProviderKeyLink(providerId) {
+        const links = {
+            openai: 'Get your key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI Platform</a>',
+            gemini: 'Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>'
+        };
+        return links[providerId] || 'Check your provider\'s documentation for API key information';
+    }
+
+    // Handle API key input changes with provider validation
     onKeyInputChange() {
         const keyInput = document.getElementById('api-key-input');
         const validateBtn = document.getElementById('validate-key-btn');
         
         if (keyInput && validateBtn) {
-            validateBtn.disabled = !keyInput.value.trim();
-            validateBtn.textContent = keyInput.value.trim() ? 'Validate Key' : 'Enter Key';
-        }
-    }
-
-    // Check AI status from server
-    async checkAIStatus(forceRefresh = false) {
-        if (this.aiStatus.checking && !forceRefresh) return;
-
-        this.aiStatus.checking = true;
-        this.updateUI();
-
-        try {
-            const response = await fetch('/api/ai-status');
-            const status = await response.json();
+            const hasKey = keyInput.value.trim();
+            const isValidFormat = this.selectedProvider && hasKey && 
+                this.providers[this.selectedProvider]?.keyPattern.test(hasKey);
             
-            this.aiStatus = {
-                ...status,
-                checking: false
-            };
-
-            this.notifyStatusChange();
-        } catch (error) {
-            console.error('Failed to check AI status:', error);
-            this.aiStatus = {
-                available: false,
-                checking: false,
-                error: 'Connection failed',
-                lastChecked: new Date().toISOString()
-            };
+            validateBtn.disabled = !hasKey;
+            
+            if (hasKey && !isValidFormat && this.selectedProvider) {
+                validateBtn.textContent = 'Invalid Format';
+                validateBtn.disabled = true;
+            } else if (hasKey) {
+                validateBtn.textContent = 'Validate Key';
+                validateBtn.disabled = false;
+            } else {
+                validateBtn.textContent = 'Enter Key';
+                validateBtn.disabled = true;
+            }
         }
-
-        this.updateUI();
     }
 
     // Validate the entered API key
     async validateAPIKey() {
         const keyInput = document.getElementById('api-key-input');
         const validateBtn = document.getElementById('validate-key-btn');
-        const resultDiv = document.getElementById('key-validation-result');
 
-        if (!keyInput || !keyInput.value.trim()) {
+        if (!keyInput?.value.trim()) {
             this.showValidationResult('Please enter an API key', 'error');
             return;
         }
 
+        if (!this.selectedProvider) {
+            this.showValidationResult('Please select an AI provider first', 'error');
+            return;
+        }
+
         const apiKey = keyInput.value.trim();
+        const provider = this.providers[this.selectedProvider];
+        
+        // Validate format first
+        if (!provider.keyPattern.test(apiKey)) {
+            this.showValidationResult(`Invalid ${provider.name} API key format. Expected format: ${provider.keyFormat}`, 'error');
+            return;
+        }
+
         validateBtn.disabled = true;
         validateBtn.textContent = 'Validating...';
         
@@ -187,17 +307,27 @@ export class APIKeyManager {
             const response = await fetch('/api/configure-key', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey, action: 'validate' })
+                body: JSON.stringify({ 
+                    apiKey, 
+                    provider: this.selectedProvider,
+                    action: 'validate' 
+                })
             });
 
             const result = await response.json();
 
             if (result.valid) {
                 this.apiKey = apiKey;
-                this.aiStatus = result.aiStatus;
-                this.showValidationResult('✅ API key validated successfully!', 'success');
+                this.aiStatus.available = true;
+                this.aiStatus.provider = this.selectedProvider;
+                this.aiStatus.error = null;
+                this.aiStatus.lastChecked = new Date().toISOString();
+                
+                this.showValidationResult(`✅ ${provider.name} API key validated successfully!`, 'success');
                 keyInput.value = ''; // Clear for security
-                document.getElementById('ai-enabled-toggle').checked = true;
+                
+                // Show refresh button now that AI is available
+                document.getElementById('status-refresh').style.display = 'inline-block';
             } else {
                 this.showValidationResult(`❌ Validation failed: ${result.error}`, 'error');
             }
@@ -210,21 +340,35 @@ export class APIKeyManager {
         validateBtn.disabled = false;
         validateBtn.textContent = 'Validate Key';
         this.updateUI();
+        this.notifyStatusChange();
     }
 
     // Clear the API key
     clearAPIKey() {
         this.apiKey = null;
+        this.selectedProvider = null;
         this.aiStatus = {
             available: false,
+            enabled: false,
             checking: false,
             error: null,
-            lastChecked: null
+            lastChecked: null,
+            provider: null
         };
         
+        // Reset UI
         document.getElementById('api-key-input').value = '';
         document.getElementById('ai-enabled-toggle').checked = false;
         document.getElementById('key-validation-result').innerHTML = '';
+        
+        // Clear provider selection
+        const providerRadios = document.querySelectorAll('input[name="ai-provider"]');
+        providerRadios.forEach(radio => radio.checked = false);
+        
+        // Hide sections using CSS classes
+        document.getElementById('api-key-section').classList.remove('visible');
+        document.getElementById('ai-configuration').classList.remove('enabled');
+        document.getElementById('status-refresh').style.display = 'none';
         
         this.updateUI();
         this.notifyStatusChange();
@@ -232,17 +376,32 @@ export class APIKeyManager {
 
     // Toggle AI functionality
     toggleAI(enabled) {
-        if (enabled && !this.aiStatus.available) {
-            // Show API key section if trying to enable but no valid key
-            document.getElementById('api-key-section').style.display = 'block';
-            document.getElementById('ai-enabled-toggle').checked = false;
-            this.showValidationResult('Please configure a valid API key first', 'warning');
+        this.aiStatus.enabled = enabled;
+        
+        const configSection = document.getElementById('ai-configuration');
+        
+        if (enabled) {
+            // Show configuration when enabling using CSS class
+            configSection.classList.add('enabled');
+            
+            // If no provider selected, don't mark as available yet
+            if (!this.selectedProvider) {
+                this.aiStatus.available = false;
+                this.showValidationResult('Please select an AI provider and configure your API key', 'info');
+            } else if (!this.apiKey) {
+                this.aiStatus.available = false;
+                this.showValidationResult('Please enter and validate your API key', 'warning');
+            } else {
+                this.aiStatus.available = true;
+            }
         } else {
-            // Update AI status
-            this.aiStatus.available = enabled && this.apiKey;
-            this.notifyStatusChange();
+            // Hide configuration when disabling using CSS class
+            configSection.classList.remove('enabled');
+            this.aiStatus.available = false;
         }
+        
         this.updateUI();
+        this.notifyStatusChange();
     }
 
     // Show validation result message
@@ -263,39 +422,78 @@ export class APIKeyManager {
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
         const statusRefresh = document.getElementById('status-refresh');
-        const apiKeySection = document.getElementById('api-key-section');
         const aiToggle = document.getElementById('ai-enabled-toggle');
 
         if (!statusDot || !statusText) return;
 
         // Update status indicator
         statusDot.className = 'status-dot';
-        statusRefresh.disabled = this.aiStatus.checking;
+        if (statusRefresh) statusRefresh.disabled = this.aiStatus.checking;
 
-        if (this.aiStatus.checking) {
+        if (!this.aiStatus.enabled) {
+            statusDot.classList.add('disabled');
+            statusText.textContent = 'AI Assessment Disabled';
+        } else if (this.aiStatus.checking) {
             statusDot.classList.add('checking');
             statusText.textContent = 'Checking AI Status...';
-        } else if (this.aiStatus.available) {
+        } else if (this.aiStatus.available && this.aiStatus.provider) {
             statusDot.classList.add('available');
-            statusText.textContent = `AI Available (${new Date(this.aiStatus.lastChecked).toLocaleTimeString()})`;
+            const providerName = this.providers[this.aiStatus.provider]?.name || this.aiStatus.provider;
+            statusText.textContent = `AI Available (${providerName}) - Last checked: ${new Date(this.aiStatus.lastChecked).toLocaleTimeString()}`;
         } else if (this.aiStatus.error) {
             statusDot.classList.add('error');
-            statusText.textContent = `AI Unavailable: ${this.aiStatus.error}`;
-        } else {
-            statusDot.classList.add('disabled');
-            statusText.textContent = 'AI Disabled - Configure API Key';
-        }
-
-        // Show/hide API key section
-        if (apiKeySection) {
-            const shouldShow = !this.aiStatus.available || this.aiStatus.error;
-            apiKeySection.style.display = shouldShow ? 'block' : 'none';
+            statusText.textContent = `AI Error: ${this.aiStatus.error}`;
+        } else if (this.aiStatus.enabled) {
+            statusDot.classList.add('warning');
+            statusText.textContent = 'AI Enabled - Awaiting Configuration';
         }
 
         // Update toggle state
         if (aiToggle) {
-            aiToggle.checked = this.aiStatus.available;
+            aiToggle.checked = this.aiStatus.enabled;
         }
+    }
+
+    // Check AI status from server (only when enabled and configured)
+    async checkAIStatus(forceRefresh = false) {
+        if (!this.aiStatus.enabled || !this.selectedProvider || !this.apiKey) {
+            return;
+        }
+
+        if (this.aiStatus.checking && !forceRefresh) return;
+
+        this.aiStatus.checking = true;
+        this.updateUI();
+
+        try {
+            const response = await fetch('/api/ai-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: this.selectedProvider })
+            });
+            const status = await response.json();
+            
+            this.aiStatus = {
+                ...this.aiStatus,
+                available: status.available,
+                error: status.error,
+                lastChecked: new Date().toISOString(),
+                checking: false
+            };
+
+            this.notifyStatusChange();
+        } catch (error) {
+            console.error('Failed to check AI status:', error);
+            this.aiStatus = {
+                ...this.aiStatus,
+                available: false,
+                checking: false,
+                error: 'Connection failed',
+                lastChecked: new Date().toISOString()
+            };
+        }
+
+        this.updateUI();
     }
 
     // Start periodic status checking
@@ -351,6 +549,25 @@ export const API_KEY_MANAGER_STYLES = `
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
+.ai-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.ai-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.ai-toggle-section {
+    display: flex;
+    align-items: center;
+}
+
 .ai-status-indicator {
     display: flex;
     align-items: center;
@@ -371,7 +588,8 @@ export const API_KEY_MANAGER_STYLES = `
 
 .status-dot.available { background: #4CAF50; }
 .status-dot.error { background: #f44336; }
-.status-dot.disabled { background: #ff9800; }
+.status-dot.disabled { background: #9e9e9e; animation: none; }
+.status-dot.warning { background: #ff9800; }
 .status-dot.checking { 
     background: #2196F3; 
     animation: pulse 1s infinite;
@@ -386,6 +604,7 @@ export const API_KEY_MANAGER_STYLES = `
 .status-text {
     flex: 1;
     font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .status-refresh {
@@ -407,16 +626,146 @@ export const API_KEY_MANAGER_STYLES = `
     cursor: not-allowed;
 }
 
+/* AI Configuration - Hidden by default, shown when enabled */
+.ai-configuration {
+    display: none;
+    margin-top: 15px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.ai-configuration.enabled {
+    display: block;
+    opacity: 1;
+    max-height: 2000px; /* Large enough for content */
+    overflow: visible;
+}
+
+/* Fallback for browsers without JavaScript */
+.no-js .ai-configuration {
+    display: block;
+    opacity: 1;
+    max-height: none;
+    overflow: visible;
+}
+
+.provider-selection h3,
+.api-key-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    color: #FFE082;
+}
+
+.provider-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.provider-option {
+    cursor: pointer;
+    display: block;
+}
+
+.provider-option input[type="radio"] {
+    display: none;
+}
+
+.provider-card {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.provider-option input[type="radio"]:checked + .provider-card {
+    background: rgba(255,255,255,0.2);
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.provider-card:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-2px);
+}
+
+.provider-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.provider-description {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    line-height: 1.3;
+}
+
+/* API Key section - Hidden by default, shown when provider selected */
 .api-key-section {
+    display: none;
     background: rgba(255,255,255,0.1);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
 }
 
-.api-key-section h3 {
-    margin: 0 0 15px 0;
-    font-size: 16px;
+.api-key-section.visible {
+    display: block;
+    opacity: 1;
+    max-height: 1000px; /* Large enough for content */
+    overflow: visible;
+}
+
+/* Fallback for browsers without JavaScript */
+.no-js .api-key-section {
+    display: block;
+    opacity: 1;
+    max-height: none;
+    overflow: visible;
+}
+
+.selected-provider-info {
+    background: rgba(76, 175, 80, 0.2);
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.selected-provider-info strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.selected-provider-info p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+}
+
+.selected-provider-info code {
+    background: rgba(255,255,255,0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.get-key-link a {
+    color: #FFE082;
+    text-decoration: none;
+}
+
+.get-key-link a:hover {
+    text-decoration: underline;
 }
 
 .key-input-group {
@@ -441,6 +790,7 @@ export const API_KEY_MANAGER_STYLES = `
     cursor: pointer;
     font-weight: 500;
     transition: opacity 0.3s;
+    white-space: nowrap;
 }
 
 .validate-btn {
@@ -458,14 +808,26 @@ export const API_KEY_MANAGER_STYLES = `
     color: white;
 }
 
-.key-info {
-    font-size: 12px;
+.key-security-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.8rem;
     opacity: 0.8;
     margin-top: 10px;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
 }
 
-.key-info a {
-    color: #FFE082;
+.security-icon {
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.key-security-info p {
+    margin: 0;
+    line-height: 1.4;
 }
 
 .validation-result {
@@ -493,10 +855,33 @@ export const API_KEY_MANAGER_STYLES = `
     border: 1px solid #ff9800;
 }
 
-.toggle-section {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.validation-message.info {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+}
+
+.ai-features-info {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.ai-features-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: #FFE082;
+}
+
+.features-list {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.features-list li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
 }
 
 .ai-toggle {
@@ -542,5 +927,54 @@ export const API_KEY_MANAGER_STYLES = `
 
 .toggle-label {
     font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .provider-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .ai-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .key-input-group {
+        flex-direction: column;
+    }
+    
+    .validate-btn, .clear-btn {
+        width: 100%;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .ai-configuration,
+    .api-key-section {
+        transition: none;
+    }
+    
+    .status-dot {
+        animation: none;
+    }
+    
+    .provider-card {
+        transition: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .provider-card {
+        border-width: 3px;
+    }
+    
+    .validation-message {
+        border-width: 2px;
+    }
 }
 `;

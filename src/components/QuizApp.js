@@ -6,6 +6,7 @@ import { ConfigurationPanel } from './ConfigurationPanel.js';
 import { TimerManager } from './TimerManager.js';
 import { QuizRenderer } from './QuizRenderer.js';
 import { AIAssessment } from './AIAssessment.js';
+import { APIKeyManager } from './APIKeyManager.js';
 import { ResultsManager } from './ResultsManager.js';
 import { EventManager } from '../utils/EventManager.js';
 import { DOMHelpers } from '../utils/DOMHelpers.js';
@@ -23,6 +24,7 @@ export class QuizApp {
     this.timerManager = null;
     this.quizRenderer = null;
     this.aiAssessment = null;
+    this.apiKeyManager = null;
     this.resultsManager = null;
     
     // Application state
@@ -167,6 +169,10 @@ export class QuizApp {
       this.storageService
     );
     this.configPanel.init();
+
+    // API Key Manager
+    this.apiKeyManager = new APIKeyManager();
+    this.apiKeyManager.initialize();
 
     // Timer Manager
     this.timerManager = new TimerManager();
@@ -387,8 +393,8 @@ export class QuizApp {
       // Save results
       this.storageService.saveQuizResults(results);
       
-      // Get AI assessment if enabled
-      if (this.quizConfig.enableAI) {
+      // Get AI assessment if enabled and available
+      if (this.apiKeyManager?.isAvailable()) {
         await this.getAIAssessment(results);
       }
       
@@ -412,6 +418,12 @@ export class QuizApp {
    */
   async getAIAssessment(results) {
     try {
+      // Check if AI is available through APIKeyManager
+      if (!this.apiKeyManager?.isAvailable()) {
+        results.aiAssessmentError = 'AI assessment not configured';
+        return;
+      }
+
       const quizData = this.questionService.exportForAIAssessment();
       const assessment = await this.aiAssessment.getAssessment(quizData);
       

@@ -56,7 +56,7 @@ function encryptApiKey(text) {
 function decryptApiKey(text) {
   try {
     const textParts = text.split(':');
-    const iv = Buffer.from(textParts.shift(), 'hex');
+    textParts.shift(); // Remove IV (not used in legacy crypto)
     const encryptedText = textParts.join(':');
     const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
@@ -68,21 +68,36 @@ function decryptApiKey(text) {
   }
 }
 
-// Global OpenAI configuration (keeping server.js priority)
+// Global AI configuration (supporting multiple providers)
 let OPENAI_KEY = process.env.OPENAI_API_KEY;
-let USE_OPENAI = !!OPENAI_KEY;
+let GEMINI_KEY = process.env.GEMINI_API_KEY;
+let CURRENT_PROVIDER = null;
+let CURRENT_API_KEY = null;
+let USE_AI = false;
 let AI_STATUS = {
   available: false,
   lastChecked: null,
   error: null,
-  checking: false
+  checking: false,
+  provider: null
 };
 
-if (!USE_OPENAI) {
-  console.warn('Warning: OPENAI_API_KEY not set. The server will start in MOCK mode and return a placeholder assessment for /api/assess. To enable real AI, set OPENAI_API_KEY in your .env.');
+// Initialize based on environment variables
+if (OPENAI_KEY) {
+  CURRENT_PROVIDER = 'openai';
+  CURRENT_API_KEY = OPENAI_KEY;
+  USE_AI = true;
+} else if (GEMINI_KEY) {
+  CURRENT_PROVIDER = 'gemini';
+  CURRENT_API_KEY = GEMINI_KEY;
+  USE_AI = true;
 }
 
-// Enhanced OpenAI validation function
+if (!USE_AI) {
+  console.warn('Warning: No AI API keys set. The server will start in MOCK mode and return placeholder assessments. To enable real AI, set OPENAI_API_KEY or GEMINI_API_KEY in your .env.');
+}
+
+// Enhanced API validation functions for multiple providers
 async function validateOpenAIKey(apiKey) {
   if (!apiKey) return { valid: false, error: 'No API key provided' };
   
@@ -120,25 +135,81 @@ async function validateOpenAIKey(apiKey) {
   }
 }
 
+async function validateGeminiKey(apiKey) {
+  if (!apiKey) return { valid: false, error: 'No API key provided' };
+  
+  try {
+    console.log('🔍 Validating Gemini API key...');
+    const testPayload = {
+      contents: [{
+        parts: [{ text: 'Test message' }]
+      }]
+    };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(testPayload)
+    });
+
+    if (response.ok) {
+      console.log('✅ Gemini API key validated successfully');
+      return { valid: true, error: null };
+    } else {
+      const errorData = await response.json();
+      console.log('❌ Gemini API key validation failed:', response.status, errorData);
+      return { 
+        valid: false, 
+        error: `API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}` 
+      };
+    }
+  } catch (error) {
+    console.error('❌ Gemini validation network error:', error);
+    return { valid: false, error: `Network error: ${error.message}` };
+  }
+}
+
+async function validateAPIKey(apiKey, provider) {
+  switch (provider) {
+    case 'openai':
+      return await validateOpenAIKey(apiKey);
+    case 'gemini':
+      return await validateGeminiKey(apiKey);
+    default:
+      return { valid: false, error: 'Unsupported provider' };
+  }
+}
+
 // Serve static files (so you can open http://localhost:3000/User_Acceptance.html)
 app.use(express.static(path.join(__dirname)));
 
 // API key management endpoint
 app.post('/api/configure-key', async (req, res) => {
   try {
-    const { apiKey, action } = req.body;
+    const { apiKey, provider, action } = req.body;
+    
+    if (!provider || !['openai', 'gemini'].includes(provider)) {
+      return res.status(400).json({ error: 'Invalid or missing provider. Must be "openai" or "gemini"' });
+    }
     
     if (action === 'validate') {
-      const validation = await validateOpenAIKey(apiKey);
+      const validation = await validateAPIKey(apiKey, provider);
       if (validation.valid) {
-        OPENAI_KEY = apiKey;
-        USE_OPENAI = true;
+        // Update global configuration
+        CURRENT_API_KEY = apiKey;
+        CURRENT_PROVIDER = provider;
+        USE_AI = true;
         AI_STATUS = {
           available: true,
           lastChecked: new Date().toISOString(),
           error: null,
-          checking: false
+          checking: false,
+          provider: provider
         };
+        
+        console.log(`✅ ${provider.toUpperCase()} API key configured successfully`);
       }
       res.json({
         valid: validation.valid,
@@ -147,11 +218,11 @@ app.post('/api/configure-key', async (req, res) => {
       });
     } else if (action === 'save') {
       // For production, encrypt and save to user session/database
-      const encryptedKey = encryptApiKey(apiKey);
-      console.log('🔐 API key encrypted and ready for storage');
-      res.json({ success: true, message: 'API key secured' });
+      encryptApiKey(apiKey);
+      console.log(`🔐 ${provider.toUpperCase()} API key encrypted and ready for storage`);
+      res.json({ success: true, message: `${provider.toUpperCase()} API key secured` });
     } else {
-      res.status(400).json({ error: 'Invalid action' });
+      res.status(400).json({ error: 'Invalid action. Must be "validate" or "save"' });
     }
   } catch (error) {
     console.error('🔑 API key configuration error:', error);
@@ -160,7 +231,7 @@ app.post('/api/configure-key', async (req, res) => {
 });
 
 // AI availability status endpoint
-app.get('/api/ai-status', async (req, res) => {
+app.post('/api/ai-status', async (req, res) => {
   if (AI_STATUS.checking) {
     return res.json(AI_STATUS);
   }
@@ -169,26 +240,117 @@ app.get('/api/ai-status', async (req, res) => {
   const shouldRecheck = !AI_STATUS.lastChecked || 
     (Date.now() - new Date(AI_STATUS.lastChecked).getTime()) > 5 * 60 * 1000;
 
-  if (shouldRecheck && OPENAI_KEY) {
+  if (shouldRecheck && CURRENT_API_KEY && CURRENT_PROVIDER) {
     AI_STATUS.checking = true;
-    const validation = await validateOpenAIKey(OPENAI_KEY);
+    const validation = await validateAPIKey(CURRENT_API_KEY, CURRENT_PROVIDER);
     AI_STATUS = {
       available: validation.valid,
       lastChecked: new Date().toISOString(),
       error: validation.error,
-      checking: false
+      checking: false,
+      provider: CURRENT_PROVIDER
     };
   }
 
   res.json(AI_STATUS);
 });
 
+// AI Assessment function supporting multiple providers
+async function getAIAssessment(questionText, userAnswerArray, correctAnswerArray) {
+  if (!USE_AI || !CURRENT_API_KEY || !CURRENT_PROVIDER) {
+    throw new Error('AI not configured');
+  }
+
+  const systemPrompt = 'You are an expert tutor. Provide a concise (2-4 sentence) assessment in plain language explaining whether the user\'s answer is correct and why. If incorrect, briefly explain the correct reasoning.';
+  const userPrompt = `Question: ${questionText}\nUser answer: ${userAnswerArray.join(', ') || 'None'}\nCorrect answer: ${correctAnswerArray.join(', ')}`;
+
+  console.log(`🤖 Calling ${CURRENT_PROVIDER.toUpperCase()} API...`);
+
+  if (CURRENT_PROVIDER === 'openai') {
+    return await callOpenAI(systemPrompt, userPrompt);
+  } else if (CURRENT_PROVIDER === 'gemini') {
+    return await callGemini(systemPrompt, userPrompt);
+  } else {
+    throw new Error('Unsupported AI provider');
+  }
+}
+
+async function callOpenAI(systemPrompt, userPrompt) {
+  const payload = {
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ],
+    max_tokens: 200,
+    temperature: 0.2
+  };
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${CURRENT_API_KEY}`
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const body = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error(`OpenAI API Error: ${response.status}`);
+    error.status = response.status;
+    error.provider = 'openai';
+    error.apiError = body.error;
+    error.body = body;
+    throw error;
+  }
+
+  return body.choices[0]?.message?.content || 'Unable to generate assessment.';
+}
+
+async function callGemini(systemPrompt, userPrompt) {
+  const payload = {
+    contents: [{
+      parts: [{ 
+        text: `${systemPrompt}\n\n${userPrompt}` 
+      }]
+    }],
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 200
+    }
+  };
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${CURRENT_API_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const body = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error(`Gemini API Error: ${response.status}`);
+    error.status = response.status;
+    error.provider = 'gemini';
+    error.apiError = body.error;
+    error.body = body;
+    throw error;
+  }
+
+  return body.candidates?.[0]?.content?.parts?.[0]?.text || 'Unable to generate assessment.';
+}
+
 app.post('/api/assess', async (req, res) => {
   try {
     const { questionText, userAnswerArray = [], correctAnswerArray = [], userId, sessionId } = req.body || {};
     
     console.log('📝 Assessment request:', {
-      useOpenAI: USE_OPENAI,
+      useAI: USE_AI,
+      provider: CURRENT_PROVIDER,
       questionLength: (questionText || '').length,
       userId: userId || 'anonymous',
       sessionId: sessionId || 'no-session'
@@ -206,11 +368,12 @@ app.post('/api/assess', async (req, res) => {
       questionText: questionText.slice(0, 200),
       userAnswer: userAnswerArray.join(', '),
       correctAnswer: correctAnswerArray.join(', '),
-      aiUsed: USE_OPENAI
+      aiUsed: USE_AI,
+      provider: CURRENT_PROVIDER
     };
 
-    // If no API key is set, return mock assessment
-    if (!USE_OPENAI || !OPENAI_KEY) {
+    // If no AI is configured, return mock assessment
+    if (!USE_AI || !CURRENT_API_KEY) {
       const mockAssessment = `✏️ PRACTICE MODE: Your answer "${userAnswerArray.join(', ') || 'None'}" compared to correct answer "${correctAnswerArray.join(', ')}". Configure AI for detailed feedback.`;
       responseData.assessment = mockAssessment;
       responseData.aiUsed = false;
@@ -225,124 +388,87 @@ app.post('/api/assess', async (req, res) => {
       });
     }
 
-    const systemPrompt = 'You are an expert tutor. Provide a concise (2-4 sentence) assessment in plain language explaining whether the user\'s answer is correct and why. If incorrect, briefly explain the correct reasoning.';
-    const userPrompt = `Question: ${questionText}\nUser answer: ${userAnswerArray.join(', ') || 'None'}\nCorrect answer: ${correctAnswerArray.join(', ')}`;
+    try {
+      const assessment = await getAIAssessment(questionText, userAnswerArray, correctAnswerArray);
+      
+      responseData.assessment = assessment;
+      userData.responses.push(responseData);
+      await saveUserData();
 
-    const payload = {
-      model: 'gpt-3.5-turbo',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      max_tokens: 200,
-      temperature: 0.2
-    };
+      res.json({
+        assessment: assessment,
+        practiceMode: false,
+        sessionId: responseData.sessionId,
+        provider: CURRENT_PROVIDER
+      });
 
-    console.log('🤖 Calling OpenAI API...');
-    // Use global fetch (Node 18+). If your Node version doesn't have fetch, install node-fetch and use it instead.
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const body = await openaiRes.json();
-    
-    if (!openaiRes.ok) {
+    } catch (apiError) {
+      console.error(`❌ ${apiError.provider?.toUpperCase() || 'AI'} API Error:`, apiError);
+      
       // Enhanced error handling with user-friendly messages
       let userMessage;
-      let logMessage = `OpenAI API Error ${openaiRes.status}: ${JSON.stringify(body)}`;
+      let logMessage;
       
-      switch (openaiRes.status) {
+      switch (apiError.status) {
         case 401:
           userMessage = '🔑 AI service authentication failed. Please check your API key configuration.';
-          logMessage = 'OpenAI API key is invalid or expired';
+          logMessage = `${apiError.provider?.toUpperCase() || 'AI'} API key is invalid or expired`;
           AI_STATUS.available = false;
           AI_STATUS.error = 'Authentication failed';
           break;
         case 429:
-          if (body.error?.type === 'insufficient_quota') {
-            userMessage = '💳 AI service quota exceeded. Please check your OpenAI billing.';
-            logMessage = 'OpenAI quota/billing limit exceeded';
+          if (apiError.error?.type === 'insufficient_quota') {
+            userMessage = `💳 ${apiError.provider?.toUpperCase() || 'AI'} service quota exceeded. Please check your billing.`;
+            logMessage = `${apiError.provider?.toUpperCase() || 'AI'} quota/billing limit exceeded`;
           } else {
             userMessage = '⏳ AI service is busy. Please wait a moment and try again.';
-            logMessage = 'OpenAI rate limit exceeded';
+            logMessage = `${apiError.provider?.toUpperCase() || 'AI'} rate limit exceeded`;
           }
           break;
         case 400:
-          if (body.error?.code === 'context_length_exceeded') {
+          if (apiError.error?.code === 'context_length_exceeded') {
             userMessage = '📏 Question too long for AI analysis. Please shorten your question.';
-            logMessage = 'OpenAI context length exceeded';
+            logMessage = `${apiError.provider?.toUpperCase() || 'AI'} context length exceeded`;
           } else {
-            userMessage = '⚠️ AI service encountered an issue with the request format.';
-            logMessage = `OpenAI bad request: ${body.error?.message || 'Unknown'}`;
+            userMessage = '❌ Invalid request format. Please try again.';
+            logMessage = `${apiError.provider?.toUpperCase() || 'AI'} bad request`;
           }
           break;
         case 500:
         case 502:
         case 503:
-        case 504:
-          userMessage = '🔧 AI service temporarily down. Please try again in a moment.';
-          logMessage = `OpenAI server error: ${openaiRes.status}`;
+          userMessage = `🔧 ${apiError.provider?.toUpperCase() || 'AI'} service is temporarily unavailable. Please try again in a few minutes.`;
+          logMessage = `${apiError.provider?.toUpperCase() || 'AI'} server error`;
           break;
         default:
-          userMessage = '❓ AI assessment temporarily unavailable. Please continue with the quiz.';
+          userMessage = '🤖 AI assessment is temporarily unavailable. Please try again later.';
+          logMessage = `${apiError.provider?.toUpperCase() || 'AI'} unknown error`;
       }
-      
+
       console.error(logMessage);
-      responseData.assessment = userMessage;
-      responseData.error = body.error?.type || 'api_error';
+
+      // Fallback to descriptive assessment
+      const fallbackAssessment = `${userMessage}\n\nBasic comparison: Your answer "${userAnswerArray.join(', ') || 'None'}" vs correct answer "${correctAnswerArray.join(', ')}".`;
       
+      responseData.assessment = fallbackAssessment;
+      responseData.aiUsed = false;
+      responseData.error = userMessage;
       userData.responses.push(responseData);
       await saveUserData();
-      
-      return res.status(200).json({ 
-        assessment: userMessage,
-        error_type: body.error?.type || 'unknown',
-        recoverable: true,
+
+      res.json({ 
+        assessment: fallbackAssessment,
+        error: userMessage,
+        error_type: apiError.error?.type,
         sessionId: responseData.sessionId
       });
     }
 
-    const assessment = body?.choices?.[0]?.message?.content ?? '';
-    console.log('✅ OpenAI assessment completed successfully');
-    
-    responseData.assessment = assessment;
-    userData.responses.push(responseData);
-    await saveUserData();
-    
-    res.json({ 
-      assessment,
-      sessionId: responseData.sessionId
-    });
-    
-  } catch (err) {
-    console.error('💥 Assessment proxy error:', err);
-    const userMessage = '🔌 AI assessment service unavailable. Please check your connection.';
-    
-    const responseData = {
-      timestamp: new Date().toISOString(),
-      userId: req.body?.userId || 'anonymous',
-      sessionId: req.body?.sessionId || crypto.randomUUID(),
-      questionText: (req.body?.questionText || '').slice(0, 200),
-      userAnswer: (req.body?.userAnswerArray || []).join(', '),
-      correctAnswer: (req.body?.correctAnswerArray || []).join(', '),
-      assessment: userMessage,
-      error: 'network_error',
-      aiUsed: false
-    };
-    
-    userData.responses.push(responseData);
-    await saveUserData();
-    
-    res.status(200).json({ 
-      assessment: userMessage,
-      error_type: 'network_error',
-      recoverable: true,
-      sessionId: responseData.sessionId
+  } catch (error) {
+    console.error('❌ Assessment endpoint error:', error);
+    res.status(500).json({ 
+      error: 'Assessment service temporarily unavailable',
+      message: 'Please try again later'
     });
   }
 });
@@ -435,7 +561,6 @@ app.get('/api/export-data', async (req, res) => {
 app.get('/diag', (req, res) => {
   res.json({ 
     status: 'ok', 
-    useOpenAI: USE_OPENAI,
     aiStatus: AI_STATUS,
     userDataStats: {
       totalUsers: userData.users.length,
@@ -451,7 +576,6 @@ app.get('/diag', (req, res) => {
 app.get('/api/diagnostics', (req, res) => {
   res.json({ 
     status: 'ok', 
-    useOpenAI: USE_OPENAI,
     aiStatus: AI_STATUS,
     userDataStats: {
       totalUsers: userData.users.length,
@@ -472,7 +596,7 @@ async function startServer() {
   app.listen(port, '127.0.0.1', () => {
     console.log('🚀 Enhanced Quiz Server Started');
     console.log(`📍 URL: http://localhost:${port}`);
-    console.log(`🤖 OpenAI: ${USE_OPENAI ? '✅ Enabled' : '❌ Disabled (configure API key)'}`);
+    console.log(`🤖 AI: ${AI_STATUS.available ? '✅ Available' : '❌ Configure provider and API key'}`);
     console.log(`💾 User Data: ${userData.responses.length} responses stored`);
     console.log(`🔧 Version: 2.0.0`);
   });
