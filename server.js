@@ -1173,6 +1173,256 @@ app.get('/api/export-data', async (req, res) => {
   }
 });
 
+// AI Question Supplementation endpoint
+app.post('/api/supplement-questions', async (req, res) => {
+  console.log('🤖 Question supplementation request received');
+  
+  try {
+    const { prompt, missingCount, schema, provider = 'openai', options = {} } = req.body;
+
+    // Validate request
+    if (!prompt || !missingCount || missingCount <= 0) {
+      return res.status(400).json({ 
+        error: 'Invalid request: prompt and missingCount are required',
+        details: { prompt: !!prompt, missingCount }
+      });
+    }
+
+    if (missingCount > 50) {
+      return res.status(400).json({ 
+        error: 'Cannot generate more than 50 questions per request',
+        maxAllowed: 50,
+        requested: missingCount
+      });
+    }
+
+    // Check AI availability
+    if (!AI_STATUS.available) {
+      return res.status(503).json({ 
+        error: 'AI service not available',
+        details: 'Please configure an AI provider API key'
+      });
+    }
+
+    // Generate questions using the appropriate AI provider
+    console.log(`🎯 Generating ${missingCount} questions using ${provider}`);
+    
+    let aiResponse;
+    const maxRetries = options.maxRetries || 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        attempt++;
+        console.log(`🔄 Generation attempt ${attempt}/${maxRetries}`);
+        
+        if (provider === 'openai') {
+          aiResponse = await callOpenAI(prompt, null, null, AI_STATUS.apiKey);
+        } else if (provider === 'gemini') {
+          aiResponse = await callGemini(prompt, null, null, AI_STATUS.apiKey);
+        } else {
+          return res.status(400).json({ error: 'Unsupported AI provider', provider });
+        }
+        
+        break; // Success - exit retry loop
+        
+      } catch (error) {
+        console.error(`❌ Generation attempt ${attempt} failed:`, error.message);
+        
+        if (attempt >= maxRetries) {
+          throw error; // Re-throw after max retries
+        }
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
+
+    // Parse and validate the AI response
+    const generatedQuestions = await parseAndValidateGeneratedQuestions(aiResponse, schema);
+    
+    // Return success response
+    res.json({
+      questions: generatedQuestions.valid,
+      metadata: {
+        requested: missingCount,
+        generated: generatedQuestions.total,
+        valid: generatedQuestions.valid.length,
+        invalid: generatedQuestions.invalid.length,
+        duplicates: generatedQuestions.duplicates || 0,
+        provider: provider,
+        attempts: attempt
+      }
+    });
+
+    console.log(`✅ Successfully generated ${generatedQuestions.valid.length}/${missingCount} questions`);
+
+  } catch (error) {
+    console.error('❌ Question supplementation error:', error);
+    
+    // Handle specific AI provider errors
+    if (error.status === 429) {
+      res.status(429).json({ 
+        error: 'AI service rate limit exceeded',
+        retryAfter: 60,
+        type: 'rate_limit'
+      });
+    } else if (error.status === 401) {
+      res.status(401).json({ 
+        error: 'AI service authentication failed',
+        type: 'authentication'
+      });
+    } else if (error.status === 400) {
+      res.status(422).json({ 
+        error: 'Invalid request to AI service',
+        details: error.message,
+        type: 'invalid_request'
+      });
+    } else {
+      res.status(500).json({ 
+        error: 'Question generation failed',
+        details: error.message,
+        type: 'server_error'
+      });
+    }
+  }
+});
+
+/**
+ * Parse and validate AI-generated questions
+ * @param {string} aiResponse - Raw AI response text
+ * @param {Object} schema - Expected schema for validation
+ * @returns {Object} Parsed and validated questions
+ */
+async function parseAndValidateGeneratedQuestions(aiResponse, schema) {
+  const result = {
+    total: 0,
+    valid: [],
+    invalid: [],
+    duplicates: 0
+  };
+
+  try {
+    // Extract CSV content from AI response
+    let csvContent = aiResponse.trim();
+    
+    // Remove any markdown formatting or extra text
+    const csvStart = csvContent.indexOf('Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer');
+    if (csvStart >= 0) {
+      csvContent = csvContent.substring(csvStart);
+    }
+    
+    // Remove any text after the CSV data
+    const lines = csvContent.split('\n');
+    const csvLines = [];
+    let inCsvData = false;
+    
+    for (const line of lines) {
+      if (line.includes('Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer')) {
+        inCsvData = true;
+        csvLines.push(line);
+      } else if (inCsvData && line.trim()) {
+        // Check if this looks like a valid CSV row
+        const parts = line.split(',');
+        if (parts.length >= 6) {
+          csvLines.push(line);
+        } else {
+          break; // End of CSV data
+        }
+      }
+    }
+    
+    if (csvLines.length < 2) {
+      throw new Error('No valid CSV data found in AI response');
+    }
+    
+    // Parse CSV data
+    const csvText = csvLines.join('\n');
+    const questions = parseCSVContent(csvText);
+    
+    result.total = questions.length;
+    
+    // Validate each question
+    const requiredFields = ['Question', 'OptionA', 'OptionB', 'OptionC', 'OptionD', 'CorrectAnswer'];
+    const validAnswers = ['A', 'B', 'C', 'D'];
+    
+    questions.forEach((question, index) => {
+      const errors = [];
+      
+      // Check required fields
+      requiredFields.forEach(field => {
+        if (!question[field] || question[field].toString().trim() === '') {
+          errors.push(`Missing or empty ${field}`);
+        }
+      });
+      
+      // Validate correct answer
+      if (question.CorrectAnswer && !validAnswers.includes(question.CorrectAnswer.toString().toUpperCase())) {
+        errors.push('CorrectAnswer must be A, B, C, or D');
+      }
+      
+      // Check for reasonable question length
+      if (question.Question && question.Question.toString().length < 10) {
+        errors.push('Question too short');
+      }
+      
+      if (errors.length === 0) {
+        // Add unique ID and timestamp
+        question.id = `supp_${Date.now()}_${index}`;
+        question.generated = true;
+        question.generatedAt = new Date().toISOString();
+        
+        result.valid.push(question);
+      } else {
+        result.invalid.push({
+          question,
+          errors,
+          index
+        });
+      }
+    });
+    
+    return result;
+    
+  } catch (error) {
+    console.error('❌ Question parsing error:', error);
+    throw new Error(`Failed to parse AI response: ${error.message}`);
+  }
+}
+
+/**
+ * Parse CSV content into question objects
+ * @param {string} csvText - CSV text content
+ * @returns {Array} Array of question objects
+ */
+function parseCSVContent(csvText) {
+  const lines = csvText.trim().split('\n');
+  if (lines.length < 2) {
+    throw new Error('CSV must have at least header and one data row');
+  }
+  
+  const headers = lines[0].split(',').map(h => h.trim());
+  const questions = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    
+    if (values.length < headers.length) {
+      console.warn(`⚠️ Row ${i} has fewer columns than headers, skipping`);
+      continue;
+    }
+    
+    const question = {};
+    headers.forEach((header, index) => {
+      question[header] = values[index] || '';
+    });
+    
+    questions.push(question);
+  }
+  
+  return questions;
+}
+
 // Enhanced diagnostics endpoint (combining both /diag and /api/diagnostics)
 app.get('/diag', (req, res) => {
   res.json({ 
