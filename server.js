@@ -746,8 +746,13 @@ app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
         
         // Read file content
         const csvContent = await fs.readFile(file.path, 'utf8');
-        const { headers, rows } = parseCSVContent(csvContent);
+        const parseResult = parseCSVContent(csvContent);
         
+        if (!parseResult || !parseResult.headers || !parseResult.rows) {
+          throw new Error('Failed to parse CSV content - invalid format');
+        }
+        
+        const { headers, rows } = parseResult;
         console.log(`📋 Parsed ${rows.length} rows from ${file.originalname}`);
         
         // Validate required headers
@@ -1391,39 +1396,6 @@ async function parseAndValidateGeneratedQuestions(aiResponse, schema) {
     console.error('❌ Question parsing error:', error);
     throw new Error(`Failed to parse AI response: ${error.message}`);
   }
-}
-
-/**
- * Parse CSV content into question objects
- * @param {string} csvText - CSV text content
- * @returns {Array} Array of question objects
- */
-function parseCSVContent(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) {
-    throw new Error('CSV must have at least header and one data row');
-  }
-  
-  const headers = lines[0].split(',').map(h => h.trim());
-  const questions = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-    
-    if (values.length < headers.length) {
-      console.warn(`⚠️ Row ${i} has fewer columns than headers, skipping`);
-      continue;
-    }
-    
-    const question = {};
-    headers.forEach((header, index) => {
-      question[header] = values[index] || '';
-    });
-    
-    questions.push(question);
-  }
-  
-  return questions;
 }
 
 // Enhanced diagnostics endpoint (combining both /diag and /api/diagnostics)
