@@ -428,6 +428,233 @@ export class QuestionSchema {
       !question.analytics // Missing analytics
     );
   }
+
+  /**
+   * Get base required fields for all question types (for UI)
+   */
+  static getBaseFields() {
+    return [
+      {
+        name: 'id',
+        label: 'Question ID',
+        description: 'Unique identifier for the question',
+        required: true,
+        type: 'number'
+      },
+      {
+        name: 'question',
+        label: 'Question Text',
+        description: 'The question text or prompt',
+        required: true,
+        type: 'string'
+      },
+      {
+        name: 'type',
+        label: 'Question Type',
+        description: 'Type of question (multiple_choice, true_false, etc.)',
+        required: true,
+        type: 'string',
+        enum: ['multiple_choice', 'true_false', 'short_answer', 'essay', 'fill_blank', 'matching']
+      },
+      {
+        name: 'correct_answer',
+        label: 'Correct Answer',
+        description: 'The correct answer for the question',
+        required: true,
+        type: 'string'
+      }
+    ];
+  }
+
+  /**
+   * Get preset-specific required and optional fields (for UI)
+   */
+  static getPresetFields(preset) {
+    const presetFields = {
+      'auto': {
+        required: [],
+        optional: [
+          {
+            name: 'category',
+            label: 'Category',
+            description: 'Question category or subject area',
+            type: 'string'
+          },
+          {
+            name: 'difficulty',
+            label: 'Difficulty',
+            description: 'Question difficulty level',
+            type: 'string',
+            enum: ['Easy', 'Medium', 'Hard', 'Expert']
+          }
+        ]
+      },
+      'multiple-choice': {
+        required: [
+          {
+            name: 'option_a',
+            label: 'Option A',
+            description: 'First answer choice',
+            type: 'string'
+          },
+          {
+            name: 'option_b',
+            label: 'Option B',
+            description: 'Second answer choice',
+            type: 'string'
+          }
+        ],
+        optional: [
+          {
+            name: 'option_c',
+            label: 'Option C',
+            description: 'Third answer choice',
+            type: 'string'
+          },
+          {
+            name: 'option_d',
+            label: 'Option D',
+            description: 'Fourth answer choice',
+            type: 'string'
+          },
+          {
+            name: 'explanation',
+            label: 'Explanation',
+            description: 'Explanation for the correct answer',
+            type: 'string'
+          }
+        ]
+      },
+      'short-answer': {
+        required: [],
+        optional: [
+          {
+            name: 'explanation',
+            label: 'Explanation',
+            description: 'Explanation or sample answer',
+            type: 'string'
+          },
+          {
+            name: 'points',
+            label: 'Points',
+            description: 'Points awarded for correct answer',
+            type: 'number'
+          }
+        ]
+      },
+      'true-false': {
+        required: [],
+        optional: [
+          {
+            name: 'explanation',
+            label: 'Explanation',
+            description: 'Explanation for the correct answer',
+            type: 'string'
+          }
+        ]
+      },
+      'numeric': {
+        required: [],
+        optional: [
+          {
+            name: 'points',
+            label: 'Points',
+            description: 'Points awarded for correct answer',
+            type: 'number'
+          },
+          {
+            name: 'explanation',
+            label: 'Explanation',
+            description: 'Explanation for the solution',
+            type: 'string'
+          }
+        ]
+      }
+    };
+
+    return presetFields[preset] || presetFields['auto'];
+  }
+
+  /**
+   * Get example CSV row for a preset (for UI)
+   */
+  static getExampleCSVRow(preset) {
+    const examples = {
+      'auto': {
+        headers: ['id', 'question', 'type', 'correct_answer', 'category', 'difficulty'],
+        row: ['1', 'What is 2+2?', 'short_answer', '4', 'Math', 'Easy']
+      },
+      'multiple-choice': {
+        headers: ['id', 'question', 'type', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer', 'explanation'],
+        row: ['1', 'What is the capital of France?', 'multiple_choice', 'London', 'Paris', 'Berlin', 'Madrid', 'B', 'Paris is the capital and largest city of France.']
+      },
+      'short-answer': {
+        headers: ['id', 'question', 'type', 'correct_answer', 'points', 'explanation'],
+        row: ['1', 'What is 2+2?', 'short_answer', '4', '1', 'Basic addition problem']
+      },
+      'true-false': {
+        headers: ['id', 'question', 'type', 'correct_answer', 'explanation'],
+        row: ['1', 'The Earth is flat', 'true_false', 'false', 'The Earth is an oblate spheroid']
+      },
+      'numeric': {
+        headers: ['id', 'question', 'type', 'correct_answer', 'points'],
+        row: ['1', 'Calculate the area of a circle with radius 5', 'numeric', '78.54', '2']
+      }
+    };
+
+    return examples[preset] || examples['auto'];
+  }
+
+  /**
+   * Get example JSON object for a preset (for UI)
+   */
+  static getExampleJSON(preset) {
+    const examples = {
+      'auto': {
+        id: 1,
+        question: 'What is 2+2?',
+        type: 'short_answer',
+        correct_answer: '4',
+        category: 'Math',
+        difficulty: 'Easy'
+      },
+      'multiple-choice': {
+        id: 1,
+        question: 'What is the capital of France?',
+        type: 'multiple_choice',
+        option_a: 'London',
+        option_b: 'Paris',
+        option_c: 'Berlin',
+        option_d: 'Madrid',
+        correct_answer: 'B',
+        explanation: 'Paris is the capital and largest city of France.'
+      },
+      'short-answer': {
+        id: 1,
+        question: 'What is 2+2?',
+        type: 'short_answer',
+        correct_answer: '4',
+        points: 1,
+        explanation: 'Basic addition problem'
+      },
+      'true-false': {
+        id: 1,
+        question: 'The Earth is flat',
+        type: 'true_false',
+        correct_answer: 'false',
+        explanation: 'The Earth is an oblate spheroid'
+      },
+      'numeric': {
+        id: 1,
+        question: 'Calculate the area of a circle with radius 5',
+        type: 'numeric',
+        correct_answer: '78.54',
+        points: 2
+      }
+    };
+
+    return examples[preset] || examples['auto'];
+  }
 }
 
 export default QuestionSchema;

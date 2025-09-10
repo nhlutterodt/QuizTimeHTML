@@ -1077,28 +1077,11 @@
           "errors": []
         }
       ]
-    },
-    {
-      "uploadId": "ed70919a-5099-4069-8454-b4e88b6fa150",
-      "timestamp": "2025-09-10T19:49:48.237Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-10T19:49:48.237Z",
+    "lastUpdated": "2025-09-10T19:27:58.025Z",
     "version": "1.0.0",
     "totalQuestions": 23
   }

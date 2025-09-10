@@ -4,6 +4,8 @@ import { ValidationHelpers } from '../utils/ValidationHelpers.js';
 import { EventManager } from '../utils/EventManager.js';
 import QuestionSupplementManager from '../services/QuestionSupplementManager.js';
 import SupplementationDialog from './SupplementationDialog.js';
+import { SchemaGuideButton } from './SchemaGuideButton.js';
+import { SchemaGuideModal } from './SchemaGuideModal.js';
 
 export class ConfigurationPanel {
   constructor(container, storageService, apiService, notifications) {
@@ -20,6 +22,10 @@ export class ConfigurationPanel {
     this.apiKeyManager = null;
     this.supplementManager = null;
     this.supplementDialog = null;
+    
+    // Schema Guide components
+    this.schemaGuideButton = null;
+    this.schemaGuideModal = null;
   }
 
   /**
@@ -29,6 +35,9 @@ export class ConfigurationPanel {
     this.loadConfig();
     this.render();
     this.attachEventListeners();
+    
+    // Initialize Schema Guide components
+    this.initializeSchemaGuide();
     
     // Load initial question bank statistics
     this.refreshQuestionBankStats();
@@ -70,7 +79,10 @@ export class ConfigurationPanel {
               <div class="form-group">
                 <label for="csvFile">Upload CSV File:</label>
                 <input type="file" id="csvFile" accept=".csv" class="form-control">
-                <small class="help-text">CSV should contain: Question, Option A, Option B, Option C, Option D, Correct Answer</small>
+                <div class="help-text-container">
+                  <small class="help-text">CSV should contain: Question, Option A, Option B, Option C, Option D, Correct Answer</small>
+                  <div id="singleUploadSchemaGuide" class="schema-guide-container"></div>
+                </div>
               </div>
               <div id="csvStatus" class="status-message"></div>
             </div>
@@ -80,6 +92,7 @@ export class ConfigurationPanel {
               <!-- Upload Limits Display -->
               <div class="upload-limits">
                 <span class="limit-text" id="uploadLimitsText">Max 5 files, 10MB total, 1000 rows per file</span>
+                <div id="multiUploadSchemaGuide" class="schema-guide-container"></div>
               </div>
 
               <!-- Drag & Drop Zone -->
@@ -1364,10 +1377,46 @@ export class ConfigurationPanel {
   }
 
   /**
+   * Initialize Schema Guide components
+   */
+  initializeSchemaGuide() {
+    // Initialize Schema Guide Modal (global)
+    if (!this.schemaGuideModal) {
+      this.schemaGuideModal = new SchemaGuideModal();
+      this.schemaGuideModal.init();
+    }
+
+    // Add Schema Guide button to single upload section
+    const singleUploadContainer = document.getElementById('singleUploadSchemaGuide');
+    if (singleUploadContainer) {
+      this.schemaGuideButton = new SchemaGuideButton(singleUploadContainer);
+      this.schemaGuideButton.render();
+    }
+
+    // Add Schema Guide button to multiple upload section
+    const multiUploadContainer = document.getElementById('multiUploadSchemaGuide');
+    if (multiUploadContainer) {
+      const multiUploadButton = new SchemaGuideButton(multiUploadContainer);
+      multiUploadButton.render();
+    }
+  }
+
+  /**
    * Clean up resources
    */
   destroy() {
     this.eventManager.cleanup();
+    
+    // Clean up Schema Guide components
+    if (this.schemaGuideButton) {
+      this.schemaGuideButton.remove();
+      this.schemaGuideButton = null;
+    }
+    
+    if (this.schemaGuideModal) {
+      this.schemaGuideModal.hide();
+      this.schemaGuideModal = null;
+    }
   }
 }
 
