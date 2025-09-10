@@ -1094,28 +1094,11 @@
         "skipped": 10,
         "errors": []
       }
-    },
-    {
-      "uploadId": "5286d196-b3fd-4f8d-9ab7-9f014ba84a48",
-      "timestamp": "2025-09-10T19:51:55.744Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-10T19:51:55.744Z",
+    "lastUpdated": "2025-09-10T19:49:48.237Z",
     "version": "1.0.0",
     "totalQuestions": 23
   }
