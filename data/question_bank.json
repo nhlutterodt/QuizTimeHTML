@@ -255,11 +255,43 @@
         "skipped": 10,
         "errors": []
       }
+    },
+    {
+      "uploadId": "f8c5e00d-e908-4727-a302-b3f235c46aa1",
+      "timestamp": "2025-09-10T19:18:52.514Z",
+      "userId": "anonymous",
+      "filesCount": 1,
+      "options": {
+        "mergeStrategy": "skip",
+        "strictness": "lenient"
+      },
+      "summary": {
+        "processed": 0,
+        "added": 0,
+        "updated": 0,
+        "skipped": 0,
+        "errors": [
+          "test_questions.csv: Cannot read properties of undefined (reading 'length')"
+        ]
+      },
+      "detailsPerFile": [
+        {
+          "filename": "test_questions.csv",
+          "size": 301,
+          "processed": 0,
+          "added": 0,
+          "updated": 0,
+          "skipped": 0,
+          "errors": [
+            "Cannot read properties of undefined (reading 'length')"
+          ]
+        }
+      ]
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-09T18:12:07.315Z",
+    "lastUpdated": "2025-09-10T19:18:52.514Z",
     "version": "1.0.0",
     "totalQuestions": 10
   }
