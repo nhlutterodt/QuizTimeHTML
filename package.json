@@ -2,6 +2,7 @@
   "name": "quiz-time-html",
   "version": "2.0.0",
   "description": "Enhanced Quiz Server with OpenAI integration and user management",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

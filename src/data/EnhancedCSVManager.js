@@ -9,17 +9,24 @@ export class EnhancedCSVManager {
     this.tags = new Set();
     this.parseErrors = [];
     this.parseWarnings = [];
+  this.lastParseSnapshot = null;
   }
 
   /**
    * Parse CSV content with enhanced error handling and schema validation
+   * API Contract: parseCSV(input, options)
+   * - Inputs: string|Buffer|File, options { snapshotRowLimit?: number, headersMap?: object }
+   * - Outputs: { parsed: Array<Question>, errors: Array<RowError>, warnings: Array<RowWarning>, lastParseSnapshot: Snapshot }
+   * - Errors: throws only on catastrophic failure. Row-level validation returned in errors array.
    */
   async parseCSV(csvContent, options = {}) {
     const {
       strictValidation = false,
       autoCorrect = true,
       preserveCustomFields = true,
-      batchSize = 1000
+      batchSize = 1000,
+      snapshotRowLimit = 50,
+      headersMap = null // New option for header mapping
     } = options;
 
     this.clearState();
@@ -44,7 +51,17 @@ export class EnhancedCSVManager {
 
       this.updateCollections();
       
+      // Create parse snapshot using extracted helper
+      this.lastParseSnapshot = this.createParseSnapshot(headers, rows.length, snapshotRowLimit);
+      
+      // Return API-compliant result matching refactor proposal contract
       return {
+        parsed: this.questions, // Array<Question> as per contract
+        errors: this.parseErrors, // Array<RowError> as per contract  
+        warnings: this.parseWarnings, // Array<RowWarning> as per contract
+        lastParseSnapshot: this.lastParseSnapshot, // Snapshot as per contract
+        
+        // Additional data for backward compatibility (will be deprecated)
         questions: this.questions,
         summary: {
           total: rows.length,
@@ -52,8 +69,6 @@ export class EnhancedCSVManager {
           errors: this.parseErrors.length,
           warnings: this.parseWarnings.length
         },
-        errors: this.parseErrors,
-        warnings: this.parseWarnings,
         collections: {
           categories: Array.from(this.categories),
           difficulties: Array.from(this.difficulties),
@@ -515,6 +530,57 @@ export class EnhancedCSVManager {
         difficulties: this.difficulties.size,
         tags: this.tags.size
       }
+    };
+  }
+
+  /**
+   * Return a compact snapshot (first N) of errors/warnings from last parse
+   */
+  getLastParseSnapshotCompact(limit = 10) {
+    if (!this.lastParseSnapshot) return null;
+    return {
+      timestamp: this.lastParseSnapshot.timestamp,
+      headers: this.lastParseSnapshot.headers,
+      rows: this.lastParseSnapshot.rows,
+      totalErrors: this.lastParseSnapshot.totalErrors,
+      totalWarnings: this.lastParseSnapshot.totalWarnings,
+      compactErrors: (this.lastParseSnapshot.errors || []).slice(0, limit),
+      compactWarnings: (this.lastParseSnapshot.warnings || []).slice(0, limit),
+      snapshotRowLimit: Math.min(limit, this.lastParseSnapshot.snapshotRowLimit || limit)
+    };
+  }
+
+  /**
+   * Export the full last parse snapshot as JSON string
+   */
+  exportLastParseSnapshotJSON() {
+    if (!this.lastParseSnapshot) return null;
+    return JSON.stringify(this.lastParseSnapshot, null, 2);
+  }
+
+  /**
+   * Create a parse snapshot with errors and warnings - extracted helper for testability
+   * @param {Array} headers - CSV headers
+   * @param {number} rowCount - Total number of rows processed  
+   * @param {number} snapshotRowLimit - Limit for compact errors/warnings
+   * @returns {Object} Parse snapshot object
+   */
+  createParseSnapshot(headers, rowCount, snapshotRowLimit = 50) {
+    // Capture a stable snapshot of parse errors/warnings for UI consumption
+    const errorsCopy = this.parseErrors.slice();
+    const warningsCopy = this.parseWarnings.slice();
+
+    return {
+      timestamp: new Date().toISOString(),
+      headers,
+      rows: rowCount,
+      totalErrors: errorsCopy.length,
+      totalWarnings: warningsCopy.length,
+      errors: errorsCopy,
+      warnings: warningsCopy,
+      compactErrors: errorsCopy.slice(0, snapshotRowLimit),
+      compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
+      snapshotRowLimit
     };
   }
 
