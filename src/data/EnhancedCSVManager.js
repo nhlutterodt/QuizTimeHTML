@@ -45,22 +45,9 @@ export class EnhancedCSVManager {
       });
 
       this.updateCollections();
-        // Capture a stable snapshot of parse errors/warnings for UI consumption
-        const errorsCopy = this.parseErrors.slice();
-        const warningsCopy = this.parseWarnings.slice();
-
-        this.lastParseSnapshot = {
-          timestamp: new Date().toISOString(),
-          headers,
-          rows: rows.length,
-          totalErrors: errorsCopy.length,
-          totalWarnings: warningsCopy.length,
-          errors: errorsCopy,
-          warnings: warningsCopy,
-          compactErrors: errorsCopy.slice(0, snapshotRowLimit),
-          compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
-          snapshotRowLimit
-        };
+      
+      // Create parse snapshot using extracted helper
+      this.lastParseSnapshot = this.createParseSnapshot(headers, rows.length, snapshotRowLimit);
       
       return {
         questions: this.questions,
@@ -561,6 +548,32 @@ export class EnhancedCSVManager {
   exportLastParseSnapshotJSON() {
     if (!this.lastParseSnapshot) return null;
     return JSON.stringify(this.lastParseSnapshot, null, 2);
+  }
+
+  /**
+   * Create a parse snapshot with errors and warnings - extracted helper for testability
+   * @param {Array} headers - CSV headers
+   * @param {number} rowCount - Total number of rows processed  
+   * @param {number} snapshotRowLimit - Limit for compact errors/warnings
+   * @returns {Object} Parse snapshot object
+   */
+  createParseSnapshot(headers, rowCount, snapshotRowLimit = 50) {
+    // Capture a stable snapshot of parse errors/warnings for UI consumption
+    const errorsCopy = this.parseErrors.slice();
+    const warningsCopy = this.parseWarnings.slice();
+
+    return {
+      timestamp: new Date().toISOString(),
+      headers,
+      rows: rowCount,
+      totalErrors: errorsCopy.length,
+      totalWarnings: warningsCopy.length,
+      errors: errorsCopy,
+      warnings: warningsCopy,
+      compactErrors: errorsCopy.slice(0, snapshotRowLimit),
+      compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
+      snapshotRowLimit
+    };
   }
 
   // Legacy compatibility methods
