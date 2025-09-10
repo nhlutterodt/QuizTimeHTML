@@ -84,6 +84,10 @@ export class IntegratedQuestionManager {
 
   /**
    * Import questions from CSV with full integration
+   * API Contract: importFromCSV(input, options)
+   * - Inputs: same as parseCSV plus { mergeStrategy?: 'skip'|'overwrite'|'merge', snapshotRowLimit?: number }
+   * - Outputs: { added: number, updated: number, skipped: number, lastParseSnapshot: Snapshot }
+   * - Errors: returns result and never throws for row validation; throws only for unexpected system errors.
    */
   async importFromCSV(csvContent, options = {}) {
     const {
@@ -137,13 +141,20 @@ export class IntegratedQuestionManager {
       this.lastImportParseSnapshot = parseResult.lastParseSnapshot || null;
 
       const result = {
-        ...mergeResult,
+        // API contract compliance - primary return values
+        added: mergeResult.summary.added,
+        updated: mergeResult.summary.updated, 
+        skipped: mergeResult.summary.skipped,
+        lastParseSnapshot: this.lastImportParseSnapshot,
+        
+        // Additional data for backward compatibility and enhanced functionality
+        questions: mergeResult.questions,
+        summary: mergeResult.summary,
+        conflicts: mergeResult.conflicts,
         parseStats: parseResult.summary,
         parseErrors: parseResult.errors,
         parseWarnings: parseResult.warnings,
         collections: parseResult.collections,
-        lastParseSnapshot: this.lastImportParseSnapshot,
-        // compact summary for quick UI display
         compactParseSnapshot: this.csvManager.getLastParseSnapshotCompact(Math.min(10, snapshotRowLimit))
       };
 
@@ -643,9 +654,15 @@ export class IntegratedQuestionManager {
 
   /**
    * Export the last parse report as a downloadable artifact.
-   * - In browser: returns { type: 'browser', filename, blob, url }
-   * - In Node/server: writes to os.tmpdir and returns { type: 'server', filename, path }
-   * - Fallback: returns raw JSON string
+   * API Contract: exportLastParseReport()
+   * - Server behavior: creates temp-file path and returns metadata so caller can stream the file
+   * - Browser behavior: returns Blob/ObjectUrl
+   * - Always returns result object describing type: 'server' | 'browser' | 'raw' and filename
+   * 
+   * Returns:
+   * - In browser: { type: 'browser', filename, blob, url }
+   * - In Node/server: { type: 'server', filename, path }
+   * - Fallback: { type: 'raw', filename, content }
    */
   async exportLastParseReport(options = {}) {
     const { filename = null } = options;

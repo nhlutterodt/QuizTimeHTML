@@ -14,14 +14,19 @@ export class EnhancedCSVManager {
 
   /**
    * Parse CSV content with enhanced error handling and schema validation
+   * API Contract: parseCSV(input, options)
+   * - Inputs: string|Buffer|File, options { snapshotRowLimit?: number, headersMap?: object }
+   * - Outputs: { parsed: Array<Question>, errors: Array<RowError>, warnings: Array<RowWarning>, lastParseSnapshot: Snapshot }
+   * - Errors: throws only on catastrophic failure. Row-level validation returned in errors array.
    */
   async parseCSV(csvContent, options = {}) {
     const {
       strictValidation = false,
       autoCorrect = true,
       preserveCustomFields = true,
-  batchSize = 1000,
-  snapshotRowLimit = 50
+      batchSize = 1000,
+      snapshotRowLimit = 50,
+      headersMap = null // New option for header mapping
     } = options;
 
     this.clearState();
@@ -49,7 +54,14 @@ export class EnhancedCSVManager {
       // Create parse snapshot using extracted helper
       this.lastParseSnapshot = this.createParseSnapshot(headers, rows.length, snapshotRowLimit);
       
+      // Return API-compliant result matching refactor proposal contract
       return {
+        parsed: this.questions, // Array<Question> as per contract
+        errors: this.parseErrors, // Array<RowError> as per contract  
+        warnings: this.parseWarnings, // Array<RowWarning> as per contract
+        lastParseSnapshot: this.lastParseSnapshot, // Snapshot as per contract
+        
+        // Additional data for backward compatibility (will be deprecated)
         questions: this.questions,
         summary: {
           total: rows.length,
@@ -57,15 +69,11 @@ export class EnhancedCSVManager {
           errors: this.parseErrors.length,
           warnings: this.parseWarnings.length
         },
-        errors: this.parseErrors,
-        warnings: this.parseWarnings,
         collections: {
           categories: Array.from(this.categories),
           difficulties: Array.from(this.difficulties),
           tags: Array.from(this.tags)
-        },
-        // Provide the stable snapshot for consumers (UI) to display row-level issues
-        lastParseSnapshot: this.lastParseSnapshot
+        }
       };
 
     } catch (error) {
