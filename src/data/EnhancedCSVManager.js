@@ -9,6 +9,7 @@ export class EnhancedCSVManager {
     this.tags = new Set();
     this.parseErrors = [];
     this.parseWarnings = [];
+  this.lastParseSnapshot = null;
   }
 
   /**
@@ -19,7 +20,8 @@ export class EnhancedCSVManager {
       strictValidation = false,
       autoCorrect = true,
       preserveCustomFields = true,
-      batchSize = 1000
+  batchSize = 1000,
+  snapshotRowLimit = 50
     } = options;
 
     this.clearState();
@@ -43,6 +45,22 @@ export class EnhancedCSVManager {
       });
 
       this.updateCollections();
+        // Capture a stable snapshot of parse errors/warnings for UI consumption
+        const errorsCopy = this.parseErrors.slice();
+        const warningsCopy = this.parseWarnings.slice();
+
+        this.lastParseSnapshot = {
+          timestamp: new Date().toISOString(),
+          headers,
+          rows: rows.length,
+          totalErrors: errorsCopy.length,
+          totalWarnings: warningsCopy.length,
+          errors: errorsCopy,
+          warnings: warningsCopy,
+          compactErrors: errorsCopy.slice(0, snapshotRowLimit),
+          compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
+          snapshotRowLimit
+        };
       
       return {
         questions: this.questions,
@@ -58,7 +76,9 @@ export class EnhancedCSVManager {
           categories: Array.from(this.categories),
           difficulties: Array.from(this.difficulties),
           tags: Array.from(this.tags)
-        }
+        },
+        // Provide the stable snapshot for consumers (UI) to display row-level issues
+        lastParseSnapshot: this.lastParseSnapshot
       };
 
     } catch (error) {
@@ -516,6 +536,31 @@ export class EnhancedCSVManager {
         tags: this.tags.size
       }
     };
+  }
+
+  /**
+   * Return a compact snapshot (first N) of errors/warnings from last parse
+   */
+  getLastParseSnapshotCompact(limit = 10) {
+    if (!this.lastParseSnapshot) return null;
+    return {
+      timestamp: this.lastParseSnapshot.timestamp,
+      headers: this.lastParseSnapshot.headers,
+      rows: this.lastParseSnapshot.rows,
+      totalErrors: this.lastParseSnapshot.totalErrors,
+      totalWarnings: this.lastParseSnapshot.totalWarnings,
+      compactErrors: (this.lastParseSnapshot.errors || []).slice(0, limit),
+      compactWarnings: (this.lastParseSnapshot.warnings || []).slice(0, limit),
+      snapshotRowLimit: Math.min(limit, this.lastParseSnapshot.snapshotRowLimit || limit)
+    };
+  }
+
+  /**
+   * Export the full last parse snapshot as JSON string
+   */
+  exportLastParseSnapshotJSON() {
+    if (!this.lastParseSnapshot) return null;
+    return JSON.stringify(this.lastParseSnapshot, null, 2);
   }
 
   // Legacy compatibility methods

@@ -102,6 +102,7 @@ export class QuizApp {
             <button id="configBtn" class="btn btn-secondary">Configuration</button>
             <button id="pauseBtn" class="btn btn-warning" style="display: none;">Pause</button>
             <button id="resumeBtn" class="btn btn-success" style="display: none;">Resume</button>
+            <button id="downloadParseReportBtn" class="btn btn-secondary">📥 Parse Report</button>
           </div>
         </header>
 
@@ -277,6 +278,47 @@ export class QuizApp {
 
     if (configBtn) {
       this.eventManager.on(configBtn, 'click', () => this.showConfiguration());
+    }
+
+    // Download parse report button
+    const downloadBtn = DOMHelpers.getElementById('downloadParseReportBtn');
+    if (downloadBtn) {
+      this.eventManager.on(downloadBtn, 'click', async () => {
+        try {
+          downloadBtn.disabled = true;
+          const originalText = downloadBtn.textContent;
+          downloadBtn.textContent = '⏳ Preparing...';
+
+          const resp = await fetch('/api/parse-report/download');
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
+            this.showError('Failed to retrieve parse report: ' + (err.error || JSON.stringify(err)));
+            return;
+          }
+
+          const disposition = resp.headers.get('Content-Disposition') || '';
+          let filename = 'parse-report.json';
+          const match = disposition.match(/filename="?([^";]+)"?/);
+          if (match) filename = match[1];
+
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+
+          downloadBtn.textContent = originalText;
+        } catch (error) {
+          console.error('Download parse report failed:', error);
+          this.showError('Download failed: ' + (error.message || error));
+        } finally {
+          downloadBtn.disabled = false;
+        }
+      });
     }
 
     if (pauseBtn) {

@@ -94,6 +94,10 @@ export class IntegratedQuestionManager {
       owner = 'system',
       tags = [],
       uploadId = null
+  ,
+  // New options for parse snapshot
+  snapshotRowLimit = 50,
+  includeFullParseReport = false
     } = options;
 
     try {
@@ -101,7 +105,8 @@ export class IntegratedQuestionManager {
       const parseResult = await this.csvManager.parseCSV(csvContent, {
         strictValidation,
         autoCorrect,
-        preserveCustomFields
+        preserveCustomFields,
+        snapshotRowLimit
       });
 
       // Add metadata to questions
@@ -128,13 +133,24 @@ export class IntegratedQuestionManager {
         await this.saveToStorage();
       }
 
+      // Attach parse snapshot to result for UI
+      this.lastImportParseSnapshot = parseResult.lastParseSnapshot || null;
+
       const result = {
         ...mergeResult,
         parseStats: parseResult.summary,
         parseErrors: parseResult.errors,
         parseWarnings: parseResult.warnings,
-        collections: parseResult.collections
+        collections: parseResult.collections,
+        lastParseSnapshot: this.lastImportParseSnapshot,
+        // compact summary for quick UI display
+        compactParseSnapshot: this.csvManager.getLastParseSnapshotCompact(Math.min(10, snapshotRowLimit))
       };
+
+      // Optionally include full JSON report (consumer can download/save)
+      if (includeFullParseReport && this.lastImportParseSnapshot) {
+        result.fullParseReportJSON = this.csvManager.exportLastParseSnapshotJSON();
+      }
 
       this.notifyChange('imported', result);
       console.log(`✅ CSV import complete: ${result.summary.added} added, ${result.summary.updated} updated, ${result.summary.skipped} skipped`);
@@ -622,6 +638,51 @@ export class IntegratedQuestionManager {
         questions: this.questionBank,
         metadata: this.metadata
       });
+    }
+  }
+
+  /**
+   * Export the last parse report as a downloadable artifact.
+   * - In browser: returns { type: 'browser', filename, blob, url }
+   * - In Node/server: writes to os.tmpdir and returns { type: 'server', filename, path }
+   * - Fallback: returns raw JSON string
+   */
+  async exportLastParseReport(options = {}) {
+    const { filename = null } = options;
+
+    const snapshot = this.lastImportParseSnapshot || this.csvManager.lastParseSnapshot;
+    if (!snapshot) {
+      throw new Error('No parse snapshot available to export');
+    }
+
+    const json = this.csvManager.exportLastParseSnapshotJSON();
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const name = filename || `parse-report-${ts}.json`;
+
+    // Browser environment: return Blob and object URL for UI to download
+    try {
+      if (typeof window !== 'undefined' && typeof Blob !== 'undefined') {
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = (typeof URL !== 'undefined') ? URL.createObjectURL(blob) : null;
+        return { type: 'browser', filename: name, blob, url };
+      }
+    } catch (e) {
+      console.error('Browser export attempt failed, falling back to server export:', e?.message || e);
+    }
+
+    // Server/Node environment: write to temp file
+    try {
+      const fs = await import('fs');
+      const os = await import('os');
+      const path = await import('path');
+      const tmpdir = os.default.tmpdir();
+      const fullPath = path.default.join(tmpdir, name);
+      await fs.promises.writeFile(fullPath, json, 'utf8');
+      return { type: 'server', filename: name, path: fullPath };
+    } catch (e) {
+      console.error('Server export attempt failed, returning raw content fallback:', e?.message || e);
+      // Final fallback: return raw content
+      return { type: 'raw', filename: name, content: json };
     }
   }
 
