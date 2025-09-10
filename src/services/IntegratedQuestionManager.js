@@ -98,6 +98,10 @@ export class IntegratedQuestionManager {
   // New options for parse snapshot
   snapshotRowLimit = 50,
   includeFullParseReport = false
+  ,
+  // New options for schema awareness
+  preset = null,
+  headersMap = null
     } = options;
 
     try {
@@ -116,6 +120,9 @@ export class IntegratedQuestionManager {
           ...question.source,
           uploadId: uploadId || this.generateUploadId(),
           owner,
+          // Record preset and headers used for traceability
+          preset: preset || null,
+          headersMap: headersMap || null,
           importedAt: new Date().toISOString()
         },
         tags: [...(question.tags || []), ...tags]
@@ -155,6 +162,24 @@ export class IntegratedQuestionManager {
       this.notifyChange('imported', result);
       console.log(`✅ CSV import complete: ${result.summary.added} added, ${result.summary.updated} updated, ${result.summary.skipped} skipped`);
       
+      // Record upload in question bank-level uploads metadata for auditing
+      const uploadRecord = {
+        uploadId: uploadId || this.generateUploadId(),
+        timestamp: new Date().toISOString(),
+        userId: owner,
+        filesCount: 1,
+        options: {
+          mergeStrategy,
+          preset: preset || null
+        },
+        summary: result.summary
+      };
+
+      // Ensure question_bank structure has uploads array
+      if (!this.metadata.uploads) this.metadata.uploads = [];
+      this.metadata.uploads.push(uploadRecord);
+      this.updateMetadata();
+
       return result;
 
     } catch (error) {

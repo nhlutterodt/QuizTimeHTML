@@ -170,7 +170,8 @@ function parseCSVLine(line) {
 }
 
 // Convert CSV row to question format
-function convertToQuestionFormat(csvRow, uploadId, rowIndex, filename) {
+// Accept optional preset and headersMap so provenance records exactly how the row was interpreted
+function convertToQuestionFormat(csvRow, uploadId, rowIndex, filename, preset = null, headersMap = null) {
   const question = {
     id: csvRow.id ? parseInt(csvRow.id) : null,
     category: csvRow.category || 'General',
@@ -186,13 +187,16 @@ function convertToQuestionFormat(csvRow, uploadId, rowIndex, filename) {
     points: parseInt(csvRow.points) || 1,
     time_limit: parseInt(csvRow.time_limit) || 30,
     
-    // Provenance metadata
+      // Provenance metadata
     source: {
       uploadId,
       filename,
       rowIndex,
       originalId: csvRow.id,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      // record schema preset and header mapping used during import
+      preset: preset || null,
+      headersMap: headersMap || null
     }
   };
   
@@ -784,7 +788,9 @@ app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
               row, 
               uploadId, 
               rowIndex, 
-              file.originalname
+              file.originalname,
+              options.preset || null,
+              options.headersMap || null
             );
             
             // Validate question
@@ -860,12 +866,20 @@ app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
       timestamp: new Date().toISOString(),
       userId: options.owner || 'anonymous',
       filesCount: files.length,
-      options,
+      // include preset explicitly for clarity
+      options: { ...options, preset: options.preset || null },
       summary: uploadSummary,
       detailsPerFile
     };
     
     questionBank.uploads.push(uploadRecord);
+
+    // Record preset usage in top-level metadata for discoverability
+    if (!questionBank.metadata) questionBank.metadata = {};
+    if (!questionBank.metadata.presets) questionBank.metadata.presets = [];
+    if (options.preset && !questionBank.metadata.presets.includes(options.preset)) {
+      questionBank.metadata.presets.push(options.preset);
+    }
     
     // Save question bank
     await saveQuestionBank();

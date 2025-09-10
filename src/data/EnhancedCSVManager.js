@@ -21,13 +21,27 @@ export class EnhancedCSVManager {
       autoCorrect = true,
       preserveCustomFields = true,
   batchSize = 1000,
-  snapshotRowLimit = 50
+  snapshotRowLimit = 50,
+  // Optional: schema preset name (e.g. 'mcq_v1') and headers mapping
+  preset = null,
+  headersMap = null
     } = options;
 
     this.clearState();
     
     try {
-      const { headers, rows } = this.parseCSVStructure(csvContent);
+      let { headers, rows } = this.parseCSVStructure(csvContent);
+      // If a headersMap was provided, apply it to the parsed headers so downstream
+      // normalization and custom field preservation respect the mapping.
+      if (headersMap && typeof headersMap === 'object') {
+        headers = headers.map(hdr => {
+          // Prefer exact match, then normalized match
+          if (Object.hasOwn(headersMap, hdr)) return headersMap[hdr];
+          const norm = QuestionSchema.normalizeFieldName(hdr);
+          if (Object.hasOwn(headersMap, norm)) return headersMap[norm];
+          return hdr;
+        });
+      }
       console.log(`📊 Parsed CSV: ${headers.length} columns, ${rows.length} rows`);
 
       // Validate headers
@@ -37,7 +51,7 @@ export class EnhancedCSVManager {
       }
 
       // Process rows in batches for memory efficiency
-      const results = await this.processRowsBatched(headers, rows, {
+      await this.processRowsBatched(headers, rows, {
         batchSize,
         strictValidation,
         autoCorrect,
@@ -59,7 +73,11 @@ export class EnhancedCSVManager {
           warnings: warningsCopy,
           compactErrors: errorsCopy.slice(0, snapshotRowLimit),
           compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
-          snapshotRowLimit
+          snapshotRowLimit,
+          // Include preset and headersMap used so callers (UI, manager) can show what
+          // mapping or schema preset was applied for this parse.
+          preset: preset || null,
+          headersMap: headersMap || null
         };
       
       return {

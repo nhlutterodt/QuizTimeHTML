@@ -1101,3 +1101,31 @@ h1 { margin-top: 0; }
     gap: 4px;
   }
 }
+
+/* Schema Guide Integration Styles */
+.help-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.schema-guide-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-limits {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.limit-text {
+  color: #666;
+  font-size: 0.9rem;
+}
