@@ -1000,38 +1000,11 @@
           ]
         }
       ]
-    },
-    {
-      "uploadId": "da079ac9-8aad-47a5-937d-6871aac98e90",
-      "timestamp": "2025-09-10T19:26:53.882Z",
-      "userId": "anonymous",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "overwrite"
-      },
-      "summary": {
-        "processed": 1,
-        "added": 0,
-        "updated": 1,
-        "skipped": 0,
-        "errors": []
-      },
-      "detailsPerFile": [
-        {
-          "filename": "duplicate_test.csv",
-          "size": 212,
-          "processed": 1,
-          "added": 0,
-          "updated": 1,
-          "skipped": 0,
-          "errors": []
-        }
-      ]
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-10T19:26:53.882Z",
+    "lastUpdated": "2025-09-10T19:26:53.869Z",
     "version": "1.0.0",
     "totalQuestions": 22
   }

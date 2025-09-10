@@ -377,17 +377,17 @@
     {
       "id": 1001,
       "category": "Test",
-      "difficulty": "Hard",
+      "difficulty": "Easy",
       "type": "multiple_choice",
-      "question": "Updated test question 1?",
-      "option_a": "A1",
-      "option_b": "B1",
-      "option_c": "C1",
-      "option_d": "D1",
+      "question": "Test question 1?",
+      "option_a": "A",
+      "option_b": "B",
+      "option_c": "C",
+      "option_d": "D",
       "correct_answer": "A",
-      "explanation": "Updated explanation",
-      "points": 3,
-      "time_limit": 60,
+      "explanation": "Test explanation",
+      "points": 1,
+      "time_limit": 30,
       "source": {
         "uploadId": "b2d5f132-0943-4f45-9588-e0a090091912",
         "filename": "basic_test.csv",
@@ -416,72 +416,6 @@
         "rowIndex": 1,
         "originalId": "1002",
         "uploadedAt": "2025-09-10T19:26:53.802Z"
-      }
-    },
-    {
-      "id": 1003,
-      "category": "Test",
-      "difficulty": "Hard",
-      "type": "multiple_choice",
-      "question": "Updated test question 1?",
-      "option_a": "A1",
-      "option_b": "B1",
-      "option_c": "C1",
-      "option_d": "D1",
-      "correct_answer": "A",
-      "explanation": "Updated explanation",
-      "points": 3,
-      "time_limit": 60,
-      "source": {
-        "uploadId": "c7beb52f-570b-433a-9a76-d2c607b3af56",
-        "filename": "duplicate_test.csv",
-        "rowIndex": 0,
-        "originalId": "1001",
-        "uploadedAt": "2025-09-10T19:26:53.842Z"
-      }
-    },
-    {
-      "id": 2001,
-      "category": "Science",
-      "difficulty": "Easy",
-      "type": "multiple_choice",
-      "question": "Test science question?",
-      "option_a": "Option A",
-      "option_b": "Option B",
-      "option_c": "Option C",
-      "option_d": "Option D",
-      "correct_answer": "C",
-      "explanation": "Science explanation",
-      "points": 1,
-      "time_limit": 30,
-      "source": {
-        "uploadId": "a3f1b8c3-ef8d-4cd7-9865-01d7cbcc7dc3",
-        "filename": "science_test.csv",
-        "rowIndex": 0,
-        "originalId": "2001",
-        "uploadedAt": "2025-09-10T19:26:53.855Z"
-      }
-    },
-    {
-      "id": 3001,
-      "category": "Math",
-      "difficulty": "Medium",
-      "type": "multiple_choice",
-      "question": "Test math question?",
-      "option_a": "1",
-      "option_b": "2",
-      "option_c": "3",
-      "option_d": "4",
-      "correct_answer": "C",
-      "explanation": "Math explanation",
-      "points": 2,
-      "time_limit": 45,
-      "source": {
-        "uploadId": "a3f1b8c3-ef8d-4cd7-9865-01d7cbcc7dc3",
-        "filename": "math_test.csv",
-        "rowIndex": 0,
-        "originalId": "3001",
-        "uploadedAt": "2025-09-10T19:26:53.856Z"
       }
     }
   ],
@@ -878,161 +812,12 @@
           "errors": []
         }
       ]
-    },
-    {
-      "uploadId": "98761130-5ee4-4d6e-82fb-d69d62d19744",
-      "timestamp": "2025-09-10T19:26:53.830Z",
-      "userId": "anonymous",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "overwrite"
-      },
-      "summary": {
-        "processed": 1,
-        "added": 0,
-        "updated": 1,
-        "skipped": 0,
-        "errors": []
-      },
-      "detailsPerFile": [
-        {
-          "filename": "duplicate_test.csv",
-          "size": 212,
-          "processed": 1,
-          "added": 0,
-          "updated": 1,
-          "skipped": 0,
-          "errors": []
-        }
-      ]
-    },
-    {
-      "uploadId": "c7beb52f-570b-433a-9a76-d2c607b3af56",
-      "timestamp": "2025-09-10T19:26:53.842Z",
-      "userId": "anonymous",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "force"
-      },
-      "summary": {
-        "processed": 1,
-        "added": 1,
-        "updated": 0,
-        "skipped": 0,
-        "errors": []
-      },
-      "detailsPerFile": [
-        {
-          "filename": "duplicate_test.csv",
-          "size": 212,
-          "processed": 1,
-          "added": 1,
-          "updated": 0,
-          "skipped": 0,
-          "errors": []
-        }
-      ]
-    },
-    {
-      "uploadId": "a3f1b8c3-ef8d-4cd7-9865-01d7cbcc7dc3",
-      "timestamp": "2025-09-10T19:26:53.856Z",
-      "userId": "anonymous",
-      "filesCount": 2,
-      "options": {
-        "mergeStrategy": "skip"
-      },
-      "summary": {
-        "processed": 2,
-        "added": 2,
-        "updated": 0,
-        "skipped": 0,
-        "errors": []
-      },
-      "detailsPerFile": [
-        {
-          "filename": "science_test.csv",
-          "size": 237,
-          "processed": 1,
-          "added": 1,
-          "updated": 0,
-          "skipped": 0,
-          "errors": []
-        },
-        {
-          "filename": "math_test.csv",
-          "size": 202,
-          "processed": 1,
-          "added": 1,
-          "updated": 0,
-          "skipped": 0,
-          "errors": []
-        }
-      ]
-    },
-    {
-      "uploadId": "8121ffa9-565c-45be-89a2-3f42e7d8899c",
-      "timestamp": "2025-09-10T19:26:53.869Z",
-      "userId": "anonymous",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "strictness": "lenient"
-      },
-      "summary": {
-        "processed": 0,
-        "added": 0,
-        "updated": 0,
-        "skipped": 0,
-        "errors": [
-          "invalid_test.csv: Missing required headers: question"
-        ]
-      },
-      "detailsPerFile": [
-        {
-          "filename": "invalid_test.csv",
-          "size": 68,
-          "processed": 0,
-          "added": 0,
-          "updated": 0,
-          "skipped": 0,
-          "errors": [
-            "Missing required headers: question"
-          ]
-        }
-      ]
-    },
-    {
-      "uploadId": "da079ac9-8aad-47a5-937d-6871aac98e90",
-      "timestamp": "2025-09-10T19:26:53.882Z",
-      "userId": "anonymous",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "overwrite"
-      },
-      "summary": {
-        "processed": 1,
-        "added": 0,
-        "updated": 1,
-        "skipped": 0,
-        "errors": []
-      },
-      "detailsPerFile": [
-        {
-          "filename": "duplicate_test.csv",
-          "size": 212,
-          "processed": 1,
-          "added": 0,
-          "updated": 1,
-          "skipped": 0,
-          "errors": []
-        }
-      ]
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-10T19:26:53.882Z",
+    "lastUpdated": "2025-09-10T19:26:53.816Z",
     "version": "1.0.0",
-    "totalQuestions": 22
+    "totalQuestions": 19
   }
 }
