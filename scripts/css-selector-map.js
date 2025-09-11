@@ -1,17 +1,20 @@
 // scripts/css-selector-map.js
 // Scans all .css files (excluding node_modules) and produces a JSON map of selector -> files and counts
 
-const fs = require('fs');
-const path = require('path');
-const glob = require('glob');
-const postcss = require('postcss');
-const safeParser = require('postcss-safe-parser');
+import fs from 'fs';
+import path from 'path';
+import { globSync } from 'glob';
+import postcss from 'postcss';
+import safeParser from 'postcss-safe-parser';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '..');
 const outFile = path.join(__dirname, 'css-selector-map.json');
 
 function collectCssFiles() {
-  return glob.sync('**/*.css', { cwd: workspaceRoot, absolute: true, ignore: ['**/node_modules/**', '**/.git/**'] });
+  return globSync('**/*.css', { cwd: workspaceRoot, absolute: true, ignore: ['**/node_modules/**', '**/.git/**'] });
 }
 
 function parseFile(filePath) {
@@ -20,9 +23,7 @@ function parseFile(filePath) {
     const root = postcss.parse(content, { from: filePath, parser: safeParser });
     const selectors = [];
     root.walkRules(rule => {
-      // skip keyframes selectors like 'from'/'to'
       if (!rule.selector) return;
-      // split comma-separated selectors
       rule.selector.split(',').forEach(s => {
         const sel = s.trim();
         if (sel) selectors.push(sel);
@@ -46,7 +47,6 @@ function buildMap(files) {
       map[sel].files.add(relative);
     }
   }
-  // convert sets to arrays
   const out = Object.create(null);
   Object.keys(map).forEach(sel => {
     out[sel] = { count: map[sel].count, files: Array.from(map[sel].files).sort() };
