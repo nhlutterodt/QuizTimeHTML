@@ -116,6 +116,15 @@ export class DOMHelpers {
   }
 
   /**
+   * Escape HTML characters to prevent XSS
+   */
+  static escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
    * Deep clone an object
    */
   static deepClone(obj) {

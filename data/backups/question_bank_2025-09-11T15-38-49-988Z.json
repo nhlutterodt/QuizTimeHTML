@@ -1111,45 +1111,11 @@
         "skipped": 10,
         "errors": []
       }
-    },
-    {
-      "uploadId": "3a1faf6e-c926-44d5-99a3-4e3668463b30",
-      "timestamp": "2025-09-11T15:38:49.989Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
-    },
-    {
-      "uploadId": "65440e7b-4bd2-42f8-8dca-30f351e57d71",
-      "timestamp": "2025-09-11T15:41:35.309Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
     }
   ],
   "metadata": {
     "created": "2025-09-09T00:00:00.000Z",
-    "lastUpdated": "2025-09-11T15:41:35.309Z",
+    "lastUpdated": "2025-09-11T15:37:43.191Z",
     "version": "1.0.0",
     "totalQuestions": 23
   }

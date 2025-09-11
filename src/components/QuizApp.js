@@ -278,11 +278,16 @@ export class QuizApp {
   setupGlobalEventListeners() {
     // Header button events
     const configBtn = DOMHelpers.getElementById('configBtn');
+    const schemaGuideBtn = DOMHelpers.getElementById('schemaGuideBtn');
     const pauseBtn = DOMHelpers.getElementById('pauseBtn');
     const resumeBtn = DOMHelpers.getElementById('resumeBtn');
 
     if (configBtn) {
       this.eventManager.on(configBtn, 'click', () => this.showConfiguration());
+    }
+
+    if (schemaGuideBtn) {
+      this.eventManager.on(schemaGuideBtn, 'click', () => this.showSchemaGuide());
     }
 
     // Download parse report button
@@ -580,6 +585,15 @@ export class QuizApp {
   showConfiguration() {
     this.setState('configuration');
     this.configPanel.show();
+  }
+
+  /**
+   * Show schema guide modal
+   */
+  showSchemaGuide() {
+    if (this.schemaGuide) {
+      this.schemaGuide.show();
+    }
   }
 
   /**
