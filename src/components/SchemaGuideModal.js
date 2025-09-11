@@ -56,8 +56,18 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
             </pre>
             <p>Use <em>header mapping</em> (in advanced upload settings) to map non-standard header names to the canonical ones.</p>
 
-            <h3>Canonical Schema (live)</h3>
+            <div class="schema-toggle" id="schemaToggle">
+              <span>📋 Canonical Schema (live)</span>
+              <span class="schema-toggle-icon">▼</span>
+            </div>
             <div id="schemaCanonicalContainer">Loading canonical schema...</div>
+            
+            <div style="margin-top: 16px; text-align: center;">
+              <button id="exportSchemaBtn" class="export-schema-btn">
+                <span class="btn-icon">💾</span>
+                Export Schema JSON
+              </button>
+            </div>
 
 
             <hr/>
@@ -80,6 +90,30 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
     const closeBtn = DOMHelpers.getElementById('schemaGuideCloseBtn');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => this.hide());
+    }
+
+    // Wire schema toggle functionality
+    const schemaToggle = DOMHelpers.getElementById('schemaToggle');
+    const schemaContainer = DOMHelpers.getElementById('schemaCanonicalContainer');
+    if (schemaToggle && schemaContainer) {
+      schemaToggle.addEventListener('click', () => {
+        const isCollapsed = schemaToggle.classList.contains('collapsed');
+        if (isCollapsed) {
+          schemaToggle.classList.remove('collapsed');
+          schemaContainer.style.display = 'block';
+        } else {
+          schemaToggle.classList.add('collapsed');
+          schemaContainer.style.display = 'none';
+        }
+      });
+    }
+
+    // Wire export schema button
+    const exportBtn = DOMHelpers.getElementById('exportSchemaBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        this._exportSchemaJSON();
+      });
     }
 
     // Render canonical schema from QuestionSchema (safe single source of truth)
@@ -200,6 +234,83 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
         snippetEl.value = '';
         resultEl.innerHTML = '';
       });
+    }
+  }
+
+  _exportSchemaJSON() {
+    try {
+      // Create schema export object with comprehensive information
+      const schemaExport = {
+        metadata: {
+          title: "QuizTime HTML - Question Schema",
+          description: "Canonical schema for quiz questions with CSV field mappings",
+          version: QuestionSchema.getSchemaVersion(),
+          exportedAt: new Date().toISOString(),
+          exportedBy: "QuizTime HTML Schema Guide"
+        },
+        coreSchema: QuestionSchema.CORE_SCHEMA,
+        csvFieldMapping: QuestionSchema.CSV_FIELD_MAPPING,
+        defaultQuestion: QuestionSchema.createDefault(),
+        examples: {
+          multipleChoice: QuestionSchema.createDefault({
+            id: 1,
+            question: "What is 2+2?",
+            type: "multiple_choice",
+            options: ["1", "2", "3", "4"],
+            correct_answer: "D",
+            category: "Math",
+            difficulty: "Easy",
+            points: 1,
+            explanation: "Basic arithmetic: 2+2 equals 4"
+          }),
+          trueFalse: QuestionSchema.createDefault({
+            id: 2,
+            question: "JavaScript is a programming language.",
+            type: "true_false",
+            correct_answer: "true",
+            category: "Programming",
+            difficulty: "Easy",
+            points: 1,
+            explanation: "JavaScript is indeed a programming language"
+          }),
+          shortAnswer: QuestionSchema.createDefault({
+            id: 3,
+            question: "What is the capital of France?",
+            type: "short_answer",
+            correct_answer: "Paris",
+            category: "Geography",
+            difficulty: "Easy",
+            points: 1,
+            explanation: "Paris is the capital and largest city of France"
+          })
+        }
+      };
+
+      // Convert to JSON with pretty formatting
+      const jsonString = JSON.stringify(schemaExport, null, 2);
+      
+      // Create blob and download
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create temporary download link
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `quiztime-schema-v${QuestionSchema.getSchemaVersion()}-${new Date().toISOString().split('T')[0]}.json`;
+      downloadLink.style.display = 'none';
+      
+      // Trigger download
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up URL
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      
+      console.log('Schema JSON exported successfully');
+    } catch (error) {
+      console.error('Failed to export schema JSON:', error);
+      alert('Failed to export schema JSON. Please check the console for details.');
     }
   }
 
