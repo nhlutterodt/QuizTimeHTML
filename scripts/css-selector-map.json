@@ -1,0 +1,1122 @@
+{
+  "generatedAt": "2025-09-11T17:26:41.155Z",
+  "filesScanned": 1,
+  "map": {
+    "body": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "h1": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".config-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".config-section h3": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".config-section label": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".config-section select": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".config-section input[type=\"number\"]": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#csv-status": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#csv-status.success": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#csv-status.error": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question.active": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question.enter": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question.exit": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "from": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "to": {
+      "count": 3,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".options": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".options li": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".options li:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".options li:focus-within": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn": {
+      "count": 3,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn:hover:not([disabled])": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn[disabled]": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".result-block": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".result-block p": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-container": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-bar": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".timer": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment::before": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.loading": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.loading::before": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.error": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.error::before": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.quota-exceeded": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-assessment.quota-exceeded::before": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#quiz-controls": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#quiz-content": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#retry-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#question-counter": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#score": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#review-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".hr": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".muted": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-banner": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-banner.pass": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-banner.fail": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-banner .sub": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner.available": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner.unavailable": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner.checking": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner.quota-exceeded": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-status-banner.rate-limited": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".tooltip": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question:hover .tooltip": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".question:focus-within .tooltip": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#file-warning": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#timer-config": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#nextBtn.hidden": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "#total-percentage": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".hidden": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".spinner": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".disabled-input": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-mode-toggle": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-mode-toggle input[type=\"checkbox\"]": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-limits": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".limit-text": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".csv-drop-zone": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".csv-drop-zone:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".csv-drop-zone.drag-over": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".drop-zone-content": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".drop-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".browse-link": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".browse-link:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-options": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview-list": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview.valid": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview.warning": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview.error": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-header": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-status": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-name": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-info": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".remove-file-btn": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".remove-file-btn:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-errors": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-item": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-item:last-child": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".file-preview-table": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".preview-table": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".preview-table th": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".preview-table td": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-actions": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-progress": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-progress-bar": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-progress-fill": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-text": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-results": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-summary": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-item": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-item .label": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-item .value": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-errors": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-message": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-message.error": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-message.info": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".upload-message.success": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".schema-table": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".schema-table th": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".schema-table td": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".schema-table thead th": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".mapping-list": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".schema-guide-modal .canon-hidden": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".supplementation-dialog-overlay": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".supplementation-dialog-overlay.visible": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".supplementation-dialog": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".supplementation-dialog-overlay.visible .supplementation-dialog": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".dialog-header": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".dialog-header h3": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".close-btn": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".close-btn:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".dialog-content": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".shortage-summary": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".shortage-stats": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".stat": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".stat.missing": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".stat-label": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".stat-value": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".stat.missing .stat-value": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-supplementation": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-supplementation.unavailable": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-header": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-header h4": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".ai-supplementation.unavailable .ai-header h4": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".generation-details": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".detail-item": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".detail-label": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".detail-value": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".persistence-option": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkbox-container": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkbox-container input[type=\"checkbox\"]": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkmark": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkbox-container input[type=\"checkbox\"]:checked + .checkmark": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkbox-container input[type=\"checkbox\"]:checked + .checkmark::after": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".checkbox-label": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".persistence-note": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".configuration-prompt": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".configuration-prompt ul": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".configuration-prompt li": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".dialog-actions": {
+      "count": 3,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn:disabled": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-primary": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-primary:hover:not(:disabled)": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-secondary": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-secondary:hover:not(:disabled)": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-link": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-link:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".btn-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".generation-progress": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-header": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "0%": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "100%": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    "50%": {
+      "count": 2,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-fill": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-details": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".progress-details .detail": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".generation-success": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".generation-error": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".success-header": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-header": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".success-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".generation-summary": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-stat": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".summary-stat.warning": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".success-message": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-message": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-actions": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-actions ul": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    },
+    ".error-actions li": {
+      "count": 1,
+      "files": [
+        "src\\style\\quiz-style.css"
+      ]
+    }
+  }
+}
