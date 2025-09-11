@@ -22,7 +22,11 @@ export class SchemaGuideModal {
         <div class="schema-guide-content" role="dialog" aria-modal="true" style="display:none">
           <header class="schema-guide-header">
             <h2>CSV Schema Guide</h2>
-            <button id="schemaGuideCloseBtn" class="btn btn-link">Close</button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button id="exportSchemaJsonBtn" class="btn btn-primary">Export schema JSON</button>
+              <button id="schemaToggleCanonBtn" class="btn btn-secondary">Hide canonical</button>
+              <button id="schemaGuideCloseBtn" class="btn btn-link">Close</button>
+            </div>
           </header>
           <section class="schema-guide-body">
             <p>This guide describes the canonical CSV fields our importer understands. Fields are case-insensitive but it's recommended to use the examples below.</p>
@@ -54,6 +58,7 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
 
             <h3>Canonical Schema (live)</h3>
             <div id="schemaCanonicalContainer">Loading canonical schema...</div>
+
 
             <hr/>
             <h3>Quick CSV Snippet Validator</h3>
@@ -111,6 +116,49 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
     const clearBtn = DOMHelpers.getElementById('schemaClearBtn');
     const snippetEl = DOMHelpers.getElementById('schemaValidatorSnippet');
     const resultEl = DOMHelpers.getElementById('schemaValidationResult');
+
+    // Export & toggle controls
+    const exportBtn = DOMHelpers.getElementById('exportSchemaJsonBtn');
+    const toggleCanonBtn = DOMHelpers.getElementById('schemaToggleCanonBtn');
+    const canonicalContainer = DOMHelpers.getElementById('schemaCanonicalContainer');
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        try {
+          const payload = {
+            timestamp: new Date().toISOString(),
+            schema: QuestionSchema.CORE_SCHEMA,
+            mapping: QuestionSchema.CSV_FIELD_MAPPING
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `question-schema-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } catch (err) {
+          console.error('Export schema failed', err);
+          alert('Failed to export schema: ' + (err.message || err));
+        }
+      });
+    }
+
+    if (toggleCanonBtn && canonicalContainer) {
+      let shown = true;
+      toggleCanonBtn.addEventListener('click', () => {
+        shown = !shown;
+        if (!shown) {
+          canonicalContainer.classList.add('canon-hidden');
+          toggleCanonBtn.textContent = 'Show canonical';
+        } else {
+          canonicalContainer.classList.remove('canon-hidden');
+          toggleCanonBtn.textContent = 'Hide canonical';
+        }
+      });
+    }
 
     if (validateBtn && snippetEl && resultEl) {
       validateBtn.addEventListener('click', async () => {
