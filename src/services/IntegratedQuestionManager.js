@@ -3,7 +3,7 @@
 
 import QuestionSchema from '../models/QuestionSchema.js';
 import EnhancedCSVManager from '../data/EnhancedCSVManager.js';
-import { ValidationHelpers } from '../utils/ValidationHelpers.js';
+// ValidationHelpers currently unused here; removed to satisfy linter
 
 export class IntegratedQuestionManager {
   constructor(storageService = null) {
@@ -98,6 +98,10 @@ export class IntegratedQuestionManager {
   // New options for parse snapshot
   snapshotRowLimit = 50,
   includeFullParseReport = false
+  ,
+  // Schema preset and header mapping passthrough
+  preset = null,
+  headersMap = null
     } = options;
 
     try {
@@ -106,17 +110,22 @@ export class IntegratedQuestionManager {
         strictValidation,
         autoCorrect,
         preserveCustomFields,
-        snapshotRowLimit
+        snapshotRowLimit,
+        preset,
+        headersMap
       });
 
       // Add metadata to questions
+      const uploadIdFinal = uploadId || this.generateUploadId();
+
       const questionsWithMetadata = parseResult.questions.map(question => ({
         ...question,
         source: {
           ...question.source,
-          uploadId: uploadId || this.generateUploadId(),
+          uploadId: uploadIdFinal,
           owner,
-          importedAt: new Date().toISOString()
+          importedAt: new Date().toISOString(),
+          preset: preset || question.source?.preset || null
         },
         tags: [...(question.tags || []), ...tags]
       }));
@@ -135,6 +144,18 @@ export class IntegratedQuestionManager {
 
       // Attach parse snapshot to result for UI
       this.lastImportParseSnapshot = parseResult.lastParseSnapshot || null;
+
+      // Persist upload metadata into bank-level metadata for traceability
+      if (!this.metadata.uploads) this.metadata.uploads = [];
+      this.metadata.uploads.push({
+        uploadId: uploadIdFinal,
+        timestamp: new Date().toISOString(),
+  preset: preset || this.lastImportParseSnapshot?.preset || null,
+  headersMap: headersMap || this.lastImportParseSnapshot?.headersMap || null,
+  rows: parseResult.summary?.total || (parseResult.questions || []).length,
+        errors: parseResult.errors.length,
+        warnings: parseResult.warnings.length
+      });
 
       const result = {
         ...mergeResult,
@@ -178,7 +199,7 @@ export class IntegratedQuestionManager {
     const resultQuestions = [...this.questionBank];
     const conflicts = [];
 
-    for (const newQuestion of newQuestions) {
+  for (const newQuestion of newQuestions) {
       try {
         // Ensure question has valid ID
         if (!newQuestion.id) {
@@ -198,21 +219,25 @@ export class IntegratedQuestionManager {
           // Conflict found - apply strategy
           const existing = resultQuestions[existingIndex];
           const mergeResult = this.applyMergeStrategy(existing, newQuestion, strategy);
-          
-          if (mergeResult.action === 'skip') {
-            summary.skipped++;
-          } else if (mergeResult.action === 'update') {
-            resultQuestions[existingIndex] = mergeResult.question;
-            summary.updated++;
-          } else if (mergeResult.action === 'add') {
-            newQuestion.id = this.generateQuestionId();
-            resultQuestions.push(newQuestion);
-            summary.added++;
+          // Apply merge result actions
+          switch (mergeResult.action) {
+            case 'skip':
+              summary.skipped++;
+              break;
+            case 'update':
+              resultQuestions[existingIndex] = mergeResult.question;
+              summary.updated++;
+              break;
+            case 'add':
+              newQuestion.id = this.generateQuestionId();
+              resultQuestions.push(newQuestion);
+              summary.added++;
+              break;
+            default:
+              break;
           }
 
-          if (mergeResult.conflict) {
-            conflicts.push(mergeResult.conflict);
-          }
+          if (mergeResult.conflict) conflicts.push(mergeResult.conflict);
         }
 
       } catch (error) {
@@ -283,9 +308,10 @@ export class IntegratedQuestionManager {
       case 'force':
         return { action: 'add', question: incoming };
 
-      case 'merge':
+      case 'merge': {
         const merged = this.mergeQuestionFields(existing, incoming);
         return { action: 'update', question: merged };
+      }
 
       default:
         throw new Error(`Unknown merge strategy: ${strategy}`);
@@ -513,9 +539,9 @@ export class IntegratedQuestionManager {
     if (search) {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(q =>
-        (q.question && q.question.toLowerCase().includes(searchLower)) ||
-        (q.explanation && q.explanation.toLowerCase().includes(searchLower)) ||
-        (q.tags && q.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+        q.question?.toLowerCase().includes(searchLower) ||
+        q.explanation?.toLowerCase().includes(searchLower) ||
+        q.tags?.some(tag => tag.toLowerCase().includes(searchLower))
       );
     }
 
@@ -528,9 +554,13 @@ export class IntegratedQuestionManager {
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();
 
       if (sortOrder === 'desc') {
-        return bVal > aVal ? 1 : (bVal < aVal ? -1 : 0);
+        if (bVal > aVal) return 1;
+        if (bVal < aVal) return -1;
+        return 0;
       } else {
-        return aVal > bVal ? 1 : (aVal < bVal ? -1 : 0);
+        if (aVal > bVal) return 1;
+        if (aVal < bVal) return -1;
+        return 0;
       }
     });
 
@@ -617,7 +647,7 @@ export class IntegratedQuestionManager {
   }
 
   generateUploadId() {
-    return `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `upload_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
   }
 
   normalizeText(text) {

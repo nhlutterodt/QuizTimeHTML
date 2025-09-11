@@ -20,14 +20,24 @@ export class EnhancedCSVManager {
       strictValidation = false,
       autoCorrect = true,
       preserveCustomFields = true,
-  batchSize = 1000,
-  snapshotRowLimit = 50
+      batchSize = 1000,
+      snapshotRowLimit = 50,
+      // Optional: allow a named preset (schema preset) and a headers map
+      preset = null,
+      headersMap = null
     } = options;
 
     this.clearState();
     
     try {
-      const { headers, rows } = this.parseCSVStructure(csvContent);
+      let { headers, rows } = this.parseCSVStructure(csvContent);
+      // If a headersMap is provided, map incoming header names to the
+      // normalized/expected header names before processing rows. This allows
+      // consumers to supply small header translation maps without modifying
+      // the source CSV.
+      if (headersMap && typeof headersMap === 'object') {
+        headers = headers.map(h => headersMap[h] || h);
+      }
       console.log(`📊 Parsed CSV: ${headers.length} columns, ${rows.length} rows`);
 
       // Validate headers
@@ -37,13 +47,12 @@ export class EnhancedCSVManager {
       }
 
       // Process rows in batches for memory efficiency
-      const results = await this.processRowsBatched(headers, rows, {
+      await this.processRowsBatched(headers, rows, {
         batchSize,
         strictValidation,
         autoCorrect,
         preserveCustomFields
       });
-
       this.updateCollections();
         // Capture a stable snapshot of parse errors/warnings for UI consumption
         const errorsCopy = this.parseErrors.slice();
@@ -51,6 +60,7 @@ export class EnhancedCSVManager {
 
         this.lastParseSnapshot = {
           timestamp: new Date().toISOString(),
+          preset: preset || null,
           headers,
           rows: rows.length,
           totalErrors: errorsCopy.length,
@@ -59,7 +69,8 @@ export class EnhancedCSVManager {
           warnings: warningsCopy,
           compactErrors: errorsCopy.slice(0, snapshotRowLimit),
           compactWarnings: warningsCopy.slice(0, snapshotRowLimit),
-          snapshotRowLimit
+          snapshotRowLimit,
+          headersMap: headersMap || null
         };
       
       return {
@@ -327,18 +338,25 @@ export class EnhancedCSVManager {
    * Auto-correct common issues in questions
    */
   autoCorrectQuestion(question) {
-    // Fix common answer format issues
-    if (question.correct_answer && question.options.length > 0) {
+    this._autoCorrectNormalizeAnswer(question);
+    this._autoCorrectNormalizeDifficulty(question);
+    this._autoCorrectNormalizeTags(question);
+    this._autoCorrectEnsurePositiveNumbers(question);
+  }
+
+  _autoCorrectNormalizeAnswer(question) {
+    if (question.correct_answer && question.options && question.options.length > 0) {
       const answer = question.correct_answer.toString().trim();
-      
+
       // If it's a number, convert to letter
       if (/^\d+$/.test(answer)) {
         const index = parseInt(answer) - 1;
         if (index >= 0 && index < question.options.length) {
           question.correct_answer = ['A', 'B', 'C', 'D', 'E', 'F'][index];
         }
+        return;
       }
-      
+
       // If it's the actual answer text, find the letter
       if (answer.length > 1) {
         const matchIndex = question.options.findIndex(opt => 
@@ -349,30 +367,31 @@ export class EnhancedCSVManager {
         }
       }
     }
+  }
 
-    // Standardize difficulty levels
-    if (question.difficulty) {
-      const diff = question.difficulty.toLowerCase();
-      if (['1', 'beginner', 'basic', 'simple'].includes(diff)) {
-        question.difficulty = 'Easy';
-      } else if (['2', 'intermediate', 'normal', 'average'].includes(diff)) {
-        question.difficulty = 'Medium';
-      } else if (['3', 'advanced', 'difficult', 'challenging'].includes(diff)) {
-        question.difficulty = 'Hard';
-      } else if (['4', '5', 'expert', 'master', 'professional'].includes(diff)) {
-        question.difficulty = 'Expert';
-      }
+  _autoCorrectNormalizeDifficulty(question) {
+    if (!question.difficulty) return;
+    const diff = question.difficulty.toString().toLowerCase();
+    if (['1', 'beginner', 'basic', 'simple'].includes(diff)) {
+      question.difficulty = 'Easy';
+    } else if (['2', 'intermediate', 'normal', 'average'].includes(diff)) {
+      question.difficulty = 'Medium';
+    } else if (['3', 'advanced', 'difficult', 'challenging'].includes(diff)) {
+      question.difficulty = 'Hard';
+    } else if (['4', '5', 'expert', 'master', 'professional'].includes(diff)) {
+      question.difficulty = 'Expert';
     }
+  }
 
-    // Clean and standardize tags
-    if (question.tags) {
-      question.tags = question.tags
-        .map(tag => tag.toString().toLowerCase().trim())
-        .filter(tag => tag.length > 0)
-        .filter((tag, index, arr) => arr.indexOf(tag) === index); // Remove duplicates
-    }
+  _autoCorrectNormalizeTags(question) {
+    if (!question.tags) return;
+    question.tags = question.tags
+      .map(tag => tag.toString().toLowerCase().trim())
+      .filter(tag => tag.length > 0)
+      .filter((tag, index, arr) => arr.indexOf(tag) === index);
+  }
 
-    // Ensure positive numeric values
+  _autoCorrectEnsurePositiveNumbers(question) {
     if (question.points !== undefined && question.points < 0) {
       question.points = 1;
     }

@@ -8,6 +8,7 @@ import { QuizRenderer } from './QuizRenderer.js';
 import { AIAssessment } from './AIAssessment.js';
 import { APIKeyManager } from './APIKeyManager.js';
 import { ResultsManager } from './ResultsManager.js';
+import SchemaGuideModal from './SchemaGuideModal.js';
 import { EventManager } from '../utils/EventManager.js';
 import { DOMHelpers } from '../utils/DOMHelpers.js';
 import QuestionSupplementManager from '../services/QuestionSupplementManager.js';
@@ -100,6 +101,7 @@ export class QuizApp {
           <div id="timerContainer" class="timer-container"></div>
           <div class="header-controls">
             <button id="configBtn" class="btn btn-secondary">Configuration</button>
+            <button id="schemaGuideBtn" class="btn btn-info">Schema Guide</button>
             <button id="pauseBtn" class="btn btn-warning" style="display: none;">Pause</button>
             <button id="resumeBtn" class="btn btn-success" style="display: none;">Resume</button>
             <button id="downloadParseReportBtn" class="btn btn-secondary">📥 Parse Report</button>
@@ -240,6 +242,9 @@ export class QuizApp {
     this.apiKeyManager = new APIKeyManager();
     this.apiKeyManager.initialize();
 
+  // Schema Guide Modal (static content)
+  this.schemaGuide = new SchemaGuideModal(document.body);
+
     // Update ConfigurationPanel with apiKeyManager after it's initialized
     this.configPanel.apiKeyManager = this.apiKeyManager;
     this.configPanel.supplementManager = new QuestionSupplementManager(this.apiService);
@@ -298,7 +303,7 @@ export class QuizApp {
 
           const disposition = resp.headers.get('Content-Disposition') || '';
           let filename = 'parse-report.json';
-          const match = disposition.match(/filename="?([^";]+)"?/);
+          const match = /filename="?([^";]+)"?/.exec(disposition);
           if (match) filename = match[1];
 
           const blob = await resp.blob();
@@ -445,8 +450,7 @@ export class QuizApp {
       this.hideLoading();
       this.showError(`Failed to start quiz: ${error.message}`);
     }
-  }
-
+    }
   /**
    * Pause the current quiz
    */
