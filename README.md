@@ -35,3 +35,19 @@ Optional improvements
 - Add retry/backoff and rate limiting on the server.
 - Deploy the proxy to a secure host (Vercel, Netlify functions, Heroku).
 - Add tests for /api/assess and client-side debouncing.
+
+## Styles
+
+This project centralizes shared UI utilities and button styles to avoid duplication and visual drift.
+
+- Canonical shared utilities and button styles: `src/style/shared.css`
+- Quiz-specific layout and progress visuals: `src/style/quiz.css`
+- Dialogs: `src/style/dialogs.css`
+- Upload UI: `src/style/upload.css`
+- Schema preview: `src/style/schema.css`
+
+Guidelines for contributors:
+
+- Do not copy `.btn`, `.btn-primary`, or related button rules into inline `<style>` blocks, backup files, or component-injected CSS. Use the classes provided in `src/style/shared.css`.
+- If a component needs a small visual override for buttons, scope that override under the component root (for example: `.supplementation-dialog .btn`) and keep it minimal.
+- Consider adding or running `npm run lint:css` (if present) or the repository's style checks before opening a PR.

@@ -1,333 +1,280 @@
 {
-  "generatedAt": "2025-09-11T17:36:38.644Z",
-  "filesScanned": 6,
+  "generatedAt": "2025-09-11T22:08:50.437Z",
+  "filesScanned": 7,
   "map": {
-    ".upload-mode-toggle": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-mode-toggle input[type=\"checkbox\"]": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
     ".upload-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-mode-toggle": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-mode-toggle input[type=\"checkbox\"]": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-limits": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .limit-text": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .csv-drop-zone": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .csv-drop-zone:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .csv-drop-zone.drag-over": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .drop-zone-content": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .drop-icon": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .browse-link": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .browse-link:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-options": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".upload-limits": {
+    ".upload-section .file-preview-section": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview-list": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview.valid": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview.warning": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview.error": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-header": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".limit-text": {
+    ".upload-section .file-status": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-name": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-info": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".csv-drop-zone": {
+    ".upload-section .remove-file-btn": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .remove-file-btn:hover": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-errors": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .error-item": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .error-item:last-child": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .file-preview-table": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .preview-table": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .preview-table th": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".csv-drop-zone:hover": {
+    ".upload-section .preview-table td": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-actions": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".csv-drop-zone.drag-over": {
+    ".upload-section .upload-progress": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-progress-bar": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-progress-fill": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-results": {
+      "count": 1,
+      "files": [
+        "src\\style\\upload.css"
+      ]
+    },
+    ".upload-section .upload-summary": {
       "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".drop-zone-content": {
-      "count": 2,
+    ".upload-section .summary-item": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".drop-icon": {
-      "count": 2,
+    ".upload-section .summary-item .label": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".browse-link": {
-      "count": 2,
+    ".upload-section .summary-item .value": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".browse-link:hover": {
-      "count": 2,
+    ".upload-section .upload-errors": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".upload-options": {
-      "count": 4,
+    ".upload-section .upload-message": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".file-preview-section": {
-      "count": 2,
+    ".upload-section .upload-message.error": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".file-preview-list": {
-      "count": 2,
+    ".upload-section .upload-message.info": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
-    ".file-preview": {
-      "count": 2,
+    ".upload-section .upload-message.success": {
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-preview.valid": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-preview.warning": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-preview.error": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-header": {
-      "count": 4,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-status": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-name": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-info": {
-      "count": 4,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".remove-file-btn": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".remove-file-btn:hover": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-errors": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".error-item": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".error-item:last-child": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".file-preview-table": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".preview-table": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".preview-table th": {
-      "count": 4,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".preview-table td": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-actions": {
-      "count": 4,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-progress": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-progress-bar": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-progress-fill": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".progress-text": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-results": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-summary": {
-      "count": 4,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".summary-item": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".summary-item .label": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".summary-item .value": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-errors": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-message": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-message.error": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-message.info": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\upload.css"
-      ]
-    },
-    ".upload-message.success": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\upload.css"
       ]
     },
@@ -338,10 +285,8 @@
       ]
     },
     ".btn": {
-      "count": 4,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
@@ -358,89 +303,93 @@
       ]
     },
     ".btn-primary": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-primary:hover:not(:disabled)": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-secondary": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-secondary:hover:not(:disabled)": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-link": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-link:hover": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn-icon": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".btn:disabled": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     ".hidden": {
-      "count": 3,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\quiz.css",
         "src\\style\\shared.css"
       ]
     },
     ".muted": {
-      "count": 3,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\quiz.css",
         "src\\style\\shared.css"
       ]
     },
     ".spinner": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\shared.css"
       ]
     },
     "to": {
-      "count": 6,
+      "count": 3,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css",
+        "src\\style\\shared.css"
+      ]
+    },
+    ".progress-text": {
+      "count": 1,
+      "files": [
+        "src\\style\\shared.css"
+      ]
+    },
+    ".progress-container": {
+      "count": 1,
+      "files": [
+        "src\\style\\shared.css"
+      ]
+    },
+    ".progress-bar": {
+      "count": 1,
+      "files": [
         "src\\style\\shared.css"
       ]
     },
@@ -463,23 +412,20 @@
       ]
     },
     ".schema-table": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\schema.css"
       ]
     },
     ".schema-table th": {
-      "count": 3,
+      "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\schema.css"
       ]
     },
     ".schema-table td": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\schema.css"
       ]
     },
@@ -490,9 +436,8 @@
       ]
     },
     ".mapping-list": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\schema.css"
       ]
     },
@@ -581,799 +526,525 @@
       ]
     },
     "body": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "h1": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".config-section": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".config-section h3": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".config-section label": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".config-section select": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".config-section input[type=\"number\"]": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#csv-status": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question.active": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question.enter": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question.exit": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "from": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".options": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".options li": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".options li:hover": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".options li:focus-within": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".result-block": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".result-block p": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\quiz.css"
-      ]
-    },
-    ".progress-container": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
-        "src\\style\\quiz.css"
-      ]
-    },
-    ".progress-bar": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".timer": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment::before": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.loading": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.loading::before": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.error": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.error::before": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.quota-exceeded": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-assessment.quota-exceeded::before": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#quiz-controls": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#quiz-content": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#retry-section": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#question-counter": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#score": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     "#review-section": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".hr": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".summary-banner": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".summary-banner.pass": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".summary-banner.fail": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".summary-banner .sub": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner.available": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner.unavailable": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner.checking": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner.quota-exceeded": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".ai-status-banner.rate-limited": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".tooltip": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question:hover .tooltip": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
     ".question:focus-within .tooltip": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\quiz-style.css",
         "src\\style\\quiz.css"
       ]
     },
-    "#file-warning": {
+    ".supplementation-dialog .btn": {
       "count": 1,
       "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "#timer-config": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "#nextBtn.hidden": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "#total-percentage": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".disabled-input": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".schema-table thead th": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".schema-guide-modal .canon-hidden": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".supplementation-dialog-overlay": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".supplementation-dialog-overlay.visible": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".supplementation-dialog": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".supplementation-dialog-overlay.visible .supplementation-dialog": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".dialog-header": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".dialog-header h3": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".close-btn": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".close-btn:hover": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".dialog-content": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".shortage-summary": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".shortage-stats": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".stat": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".stat.missing": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".stat-label": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".stat-value": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".stat.missing .stat-value": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-supplementation": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-supplementation.unavailable": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-header": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-icon": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-header h4": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".ai-supplementation.unavailable .ai-header h4": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".generation-details": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".detail-item": {
-      "count": 4,
+      "count": 2,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".detail-label": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".detail-value": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".persistence-option": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkbox-container": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkbox-container input[type=\"checkbox\"]": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkmark": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkbox-container input[type=\"checkbox\"]:checked + .checkmark": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkbox-container input[type=\"checkbox\"]:checked + .checkmark::after": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".checkbox-label": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".persistence-note": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".configuration-prompt": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".configuration-prompt ul": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".configuration-prompt li": {
-      "count": 2,
+      "count": 1,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     },
     ".dialog-actions": {
-      "count": 6,
+      "count": 3,
       "files": [
-        "src\\style\\dialogs.css",
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".generation-progress": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".progress-header": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".progress-icon": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "0%": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "100%": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    "50%": {
-      "count": 2,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".progress-fill": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".progress-details": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".progress-details .detail": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".generation-success": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".generation-error": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".success-header": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-header": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".success-icon": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-icon": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".generation-summary": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".summary-stat": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".summary-stat.warning": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".success-message": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-message": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-actions": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-actions ul": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
-      ]
-    },
-    ".error-actions li": {
-      "count": 1,
-      "files": [
-        "src\\style\\quiz-style.css"
+        "src\\style\\dialogs.css"
       ]
     }
   }

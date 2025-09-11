@@ -1595,68 +1595,9 @@ export const MULTI_CSV_UPLOAD_STYLES = `
   justify-content: flex-end;
 }
 
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+/* Button utilities moved to src/style/shared.css - components should use .btn, .btn-primary, etc. */
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #0056b3;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #545b62;
-}
-
-/* Upload Progress */
-.upload-progress {
-  margin: 20px 0;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #007bff;
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  text-align: center;
-  margin-top: 8px;
-  font-size: 0.9em;
-  color: #6c757d;
-}
+/* Upload Progress - visuals are provided by src/style/upload.css and src/style/quiz.css */
 
 /* Upload Results */
 .upload-results {

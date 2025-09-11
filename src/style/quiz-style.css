@@ -1,0 +1,10 @@
+/* DEPRECATED: legacy stylesheet. All rules were migrated to component CSS under
+  src/style/*.css and shared utilities to src/style/shared.css. This file is
+  intentionally kept as a read-only backup to avoid reintroducing duplicate
+  selectors during development. Do NOT edit or re-enable rules here. If you
+  need to reference previous styles, copy from the backup in the git history.
+
+  NOTE: This file intentionally contains no active selectors so it will not
+  appear as a source in the selector scanner. */
+
+/* backup only: original content is preserved in git history */

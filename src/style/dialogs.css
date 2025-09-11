@@ -1,5 +1,14 @@
 /* Dialog & supplementation styles extracted from quiz-style.css */
 
+/* Preserve responsive full-width buttons inside dialogs */
+@media (max-width: 640px) {
+  .supplementation-dialog .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* Dialog & supplementation styles extracted from quiz-style.css */
+
 .supplementation-dialog-overlay {
   position: fixed;
   top: 0;
@@ -67,7 +76,6 @@
   .dialog-header, .dialog-content, .dialog-actions { padding: 16px; }
   .shortage-stats { gap: 8px; }
   .dialog-actions { flex-direction: column; }
-  .btn { width: 100%; justify-content: center; }
   .generation-details { padding: 12px; }
   .detail-item { flex-direction: column; align-items: flex-start; gap: 4px; }
 }

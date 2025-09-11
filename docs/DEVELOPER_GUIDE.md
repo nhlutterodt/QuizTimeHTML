@@ -30,7 +30,6 @@ Node.js 18+
 npm 8+
 Modern browser (Chrome 80+, Firefox 75+, Safari 13+)
 ```
-
 ### Installation
 
 ```bash
@@ -377,6 +376,15 @@ injectStyles() {
   styleElement.textContent = COMPONENT_STYLES;
   document.head.appendChild(styleElement);
 }
+
+### Styles (project policy)
+
+To avoid visual drift and duplicated rules, follow these conventions:
+
+- Centralize shared utilities and button styles in `src/style/shared.css` (this is the canonical source for `.btn`, `.btn-primary`, `.btn-secondary`, etc.).
+- Component styles (layout, specific visual tweaks) belong in their respective files: `src/style/quiz.css`, `src/style/dialogs.css`, `src/style/upload.css`, `src/style/schema.css`.
+- Do not duplicate `.btn` or other utility rules in inline `<style>` blocks, backup HTML files, or injected component styles. If you must change button visuals for a single component, scope the rule to the component root (for example: `.supplementation-dialog .btn`).
+- Consider adding `stylelint` and running it in CI to enforce this policy automatically.
 ```
 
 ## 🧪 Testing Strategy
