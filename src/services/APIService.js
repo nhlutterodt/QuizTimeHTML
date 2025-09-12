@@ -68,6 +68,10 @@ export class APIService {
       autoCorrect: options.autoCorrect !== false
     }));
 
+    // Optional preset and headersMap
+    if (options.preset) formData.append('preset', options.preset);
+    if (options.headersMap) formData.append('headersMap', JSON.stringify(options.headersMap));
+
     try {
       const response = await fetch(`${this.baseURL}/api/upload-csvs`, {
         method: 'POST',

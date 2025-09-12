@@ -109,6 +109,21 @@ export class ConfigurationPanel {
                     <option value="strict">Strict (reject file on error)</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label for="uploadPresetSelect">Schema Preset:</label>
+                  <select id="uploadPresetSelect" class="form-control">
+                    <option value="auto">Auto (detect)</option>
+                    <option value="multiple_choice">Multiple Choice</option>
+                    <option value="short_answer">Short Answer</option>
+                    <option value="true_false">True/False</option>
+                    <option value="numeric">Numeric</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="headersMapText">Optional headers map (JSON)</label>
+                  <textarea id="headersMapText" rows="3" class="form-control" placeholder='{"Q":"question","A":"option_a","B":"option_b"}'></textarea>
+                  <div style="margin-top:6px;font-size:0.9em;color:#666">Or upload a JSON file: <input type="file" id="headersMapFile" accept="application/json" style="display:inline-block;margin-left:6px"/></div>
+                </div>
               </div>
 
               <!-- File Preview Section -->
@@ -265,6 +280,7 @@ export class ConfigurationPanel {
     const multiCsvFiles = document.getElementById('multiCsvFiles');
     const browseCsvs = document.getElementById('browseCsvs');
     const csvDropZone = document.getElementById('csvDropZone');
+  const headersMapFile = document.getElementById('headersMapFile');
     const clearFiles = document.getElementById('clearFiles');
     const uploadFiles = document.getElementById('uploadFiles');
     const timerMode = document.getElementById('timerMode');
@@ -291,6 +307,21 @@ export class ConfigurationPanel {
     // Multi-upload action buttons
     this.eventManager.on(clearFiles, 'click', () => this.clearSelectedFiles());
     this.eventManager.on(uploadFiles, 'click', () => this.uploadToQuestionBank());
+
+    // Headers map file input - load JSON into textarea
+    if (headersMapFile) {
+      this.eventManager.on(headersMapFile, 'change', async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        try {
+          const txt = await this.readFileAsText(f);
+          document.getElementById('headersMapText').value = txt;
+        } catch (err) {
+          console.error('Failed to read headers map file', err);
+          this.showStatus('csvStatus', 'Failed to read headers map file', 'error');
+        }
+      });
+    }
 
     // Question bank management
     const refreshStats = document.getElementById('refreshStats');
@@ -791,6 +822,17 @@ export class ConfigurationPanel {
         owner: 'user', // TODO: get from user context
         tags: []
       };
+      // Include optional preset and headersMap if provided
+      try {
+        const presetVal = document.getElementById('uploadPresetSelect')?.value || 'auto';
+        options.preset = presetVal;
+        const headersMapText = document.getElementById('headersMapText')?.value || '';
+        if (headersMapText.trim()) {
+          options.headersMap = JSON.parse(headersMapText);
+        }
+      } catch (err) {
+        console.warn('Invalid headersMap JSON, ignoring:', err);
+      }
 
       // Use the professional API service
       progressText.textContent = 'Uploading to question bank...';
@@ -870,7 +912,7 @@ export class ConfigurationPanel {
    */
   showUploadResults(result) {
     const resultsSection = document.getElementById('uploadResults');
-    const { summary, detailsPerFile } = result;
+  const { summary } = result;
     
     const resultsHTML = `
       <h4>Upload Complete</h4>
@@ -1080,7 +1122,7 @@ export class ConfigurationPanel {
    * @param {number} availableCount - Number of questions available
    */
   async handleQuestionShortage(requestedCount, availableCount) {
-    const missingCount = requestedCount - availableCount;
+  // difference intentionally unused here (handled by dialog)
     
     // Check if AI is available
     const hasValidAPIKey = this.apiKeyManager ? this.apiKeyManager.isAvailable() : false;

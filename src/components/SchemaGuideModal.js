@@ -25,6 +25,7 @@ export class SchemaGuideModal {
             <div style="display:flex;gap:8px;align-items:center">
               <button id="exportSchemaJsonBtn" class="btn btn-primary">Export schema JSON</button>
               <button id="schemaToggleCanonBtn" class="btn btn-secondary">Hide canonical</button>
+              <button id="openSchemaCreatorBtn" class="btn btn-outline">Create schema</button>
               <button id="schemaGuideCloseBtn" class="btn btn-link">Close</button>
             </div>
           </header>

@@ -1,11 +1,4 @@
-// Enhanced Express server with comprehensive OpenAI integration and user management
-// Combined features from both server.js and server-enhanced.js
-// Usage:
-// 1. Copy this repository to a folder with your quiz HTML.
-// 2. Create a .env file with: OPENAI_API_KEY=sk-...
-// 3. npm install
-// 4. npm start
-
+// Minimal server.js - supports CSV upload with headersMap and preset
 const express = require('express');
 require('dotenv').config();
 const path = require('path');
@@ -16,310 +9,45 @@ const multer = require('multer');
 
 const app = express();
 
-// CORS configuration for development
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
-app.use(express.json({ limit: '10mb' }));
-
-// Initialize user data storage
 const USER_DATA_FILE = path.join(__dirname, 'user_data.json');
-let userData = { users: [], sessions: [], responses: [] };
-
-// Load existing user data
-async function loadUserData() {
-  try {
-    const data = await fs.readFile(USER_DATA_FILE, 'utf8');
-    userData = JSON.parse(data);
-    console.log('✅ User data loaded successfully');
-  } catch (error) {
-    console.log('📝 Creating new user data file - file not found:', error.message);
-    await saveUserData();
-  }
-}
-
-// Save user data
-async function saveUserData() {
-  try {
-    await fs.writeFile(USER_DATA_FILE, JSON.stringify(userData, null, 2));
-    console.log('💾 User data saved successfully');
-  } catch (error) {
-    console.error('❌ Failed to save user data:', error);
-  }
-}
-
-// Question Bank Management
 const QUESTION_BANK_FILE = path.join(__dirname, 'data', 'question_bank.json');
 const BACKUPS_DIR = path.join(__dirname, 'data', 'backups');
+
+let userData = { users: [], sessions: [], responses: [] };
 let questionBank = { questions: [], uploads: [], metadata: {} };
-// IntegratedQuestionManager instance (initialized at startup)
-let integratedManager = null;
 
-// Configure multer for file uploads
-const upload = multer({
-  dest: 'uploads/',
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB total
-    files: 5 // Max 5 files
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only CSV files are allowed!'), false);
-    }
-  }
-});
+async function loadUserData() { try { const data = await fs.readFile(USER_DATA_FILE, 'utf8'); userData = JSON.parse(data); } catch (e) { await saveUserData(); } }
+async function saveUserData() { try { await fs.writeFile(USER_DATA_FILE, JSON.stringify(userData, null, 2)); } catch (e) { console.error('saveUserData failed', e); } }
+async function loadQuestionBank() { try { const data = await fs.readFile(QUESTION_BANK_FILE, 'utf8'); questionBank = JSON.parse(data); } catch (e) { await saveQuestionBank(); } }
+async function saveQuestionBank() { questionBank.metadata.lastUpdated = new Date().toISOString(); questionBank.metadata.totalQuestions = questionBank.questions.length; await fs.writeFile(QUESTION_BANK_FILE, JSON.stringify(questionBank, null, 2)); }
+async function createBackup() { try { const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); const backupFile = path.join(BACKUPS_DIR, `question_bank_${timestamp}.json`); await fs.writeFile(backupFile, JSON.stringify(questionBank, null, 2)); return backupFile; } catch (e) { console.error('createBackup failed', e); } }
 
-// Load question bank
-async function loadQuestionBank() {
-  try {
-    const data = await fs.readFile(QUESTION_BANK_FILE, 'utf8');
-    questionBank = JSON.parse(data);
-    console.log(`✅ Question bank loaded: ${questionBank.questions.length} questions`);
-  } catch (error) {
-    console.log('📝 Creating new question bank - file not found:', error.message);
-    await saveQuestionBank();
-  }
-}
+// Simple CSV parser (small, not full CSV spec)
+function parseCSVLine(line) { const result = []; let cur=''; let inQ=false; for (let i=0;i<line.length;i++){const ch=line[i]; if(ch==='"') inQ=!inQ; else if(ch===',' && !inQ){ result.push(cur.trim().replace(/^"|"$/g,'')); cur=''; } else cur+=ch;} result.push(cur.trim().replace(/^"|"$/g,'')); return result; }
+function parseCSVContent(text){ const lines = text.split('\n').map(l=>l.trim()).filter(Boolean); if(!lines.length) return { headers:[], rows:[] }; const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'')); const rows=[]; for(let i=1;i<lines.length;i++){ const cols=parseCSVLine(lines[i]); if(cols.length===headers.length){ const obj={}; headers.forEach((h,idx)=>obj[h]=cols[idx]); rows.push(obj); } } return { headers, rows }; }
 
-// Save question bank
-async function saveQuestionBank() {
-  try {
-    questionBank.metadata.lastUpdated = new Date().toISOString();
-    questionBank.metadata.totalQuestions = questionBank.questions.length;
-    
-    await fs.writeFile(QUESTION_BANK_FILE, JSON.stringify(questionBank, null, 2));
-    console.log(`💾 Question bank saved: ${questionBank.questions.length} questions`);
-  } catch (error) {
-    console.error('❌ Failed to save question bank:', error);
-    throw error;
-  }
-}
+function convertToQuestionFormat(csvRow, uploadId, rowIndex, filename){ return { id: csvRow.id?parseInt(csvRow.id):null, category: csvRow.category||'General', difficulty: csvRow.difficulty||'Medium', type: csvRow.type||'multiple_choice', question: csvRow.question, option_a: csvRow.option_a, option_b: csvRow.option_b, option_c: csvRow.option_c, option_d: csvRow.option_d, correct_answer: csvRow.correct_answer, explanation: csvRow.explanation||'', points: parseInt(csvRow.points)||1, time_limit: parseInt(csvRow.time_limit)||30, source:{ uploadId, filename, rowIndex, originalId: csvRow.id, uploadedAt: new Date().toISOString() } }; }
 
-// Create backup before destructive operations
-async function createBackup() {
-  try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFile = path.join(BACKUPS_DIR, `question_bank_${timestamp}.json`);
-    
-    await fs.writeFile(backupFile, JSON.stringify(questionBank, null, 2));
-    console.log(`📦 Backup created: ${backupFile}`);
-    return backupFile;
-  } catch (error) {
-    console.error('❌ Failed to create backup:', error);
-    throw error;
-  }
-}
+function findDuplicate(newQ, existing){ if(newQ.id){ const m=existing.find(q=>q.id===newQ.id); if(m) return {type:'id', question:m}; } const norm=(newQ.question||'').toLowerCase().trim(); const t=existing.find(q=> (q.question||'').toLowerCase().trim()===norm); if(t) return {type:'text', question:t}; return null; }
 
-// Parse CSV content
-function parseCSVContent(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length === 0) {
-    throw new Error('Empty CSV file');
-  }
-  
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  const rows = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const row = parseCSVLine(lines[i]);
-    if (row.length === headers.length) {
-      const obj = {};
-      headers.forEach((header, index) => {
-        obj[header] = row[index];
-      });
-      rows.push(obj);
-    }
-  }
-  
-  return { headers, rows };
-}
+function applyMergeStrategy(newQ, existingQ, strategy){ switch(strategy){ case 'skip': return null; case 'overwrite': return {...newQ, source: existingQ.source}; case 'force': { const maxId = Math.max(0, ...questionBank.questions.map(q=>q.id||0)); return {...newQ, id: maxId+1}; } case 'merge': return {...existingQ, ...Object.fromEntries(Object.entries(newQ).filter(([k,v])=>v!=='' && v!=null && k!=='source')), source: existingQ.source}; default: return null; } }
 
-// Parse individual CSV line handling quotes
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim().replace(/^"|"$/g, ''));
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  
-  result.push(current.trim().replace(/^"|"$/g, ''));
-  return result;
-}
+const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024, files: 5 } });
+const uploadProcessor = require('./src/services/uploadProcessor');
 
-// Convert CSV row to question format
-function convertToQuestionFormat(csvRow, uploadId, rowIndex, filename) {
-  const question = {
-    id: csvRow.id ? parseInt(csvRow.id) : null,
-    category: csvRow.category || 'General',
-    difficulty: csvRow.difficulty || 'Medium',
-    type: csvRow.type || 'multiple_choice',
-    question: csvRow.question,
-    option_a: csvRow.option_a,
-    option_b: csvRow.option_b,
-    option_c: csvRow.option_c,
-    option_d: csvRow.option_d,
-    correct_answer: csvRow.correct_answer,
-    explanation: csvRow.explanation || '',
-    points: parseInt(csvRow.points) || 1,
-    time_limit: parseInt(csvRow.time_limit) || 30,
-    
-    // Provenance metadata
-    source: {
-      uploadId,
-      filename,
-      rowIndex,
-      originalId: csvRow.id,
-      uploadedAt: new Date().toISOString()
-    }
-  };
-  
-  return question;
-}
+app.get('/api/question-bank/stats', (req,res)=>{ res.json({ totalQuestions: questionBank.questions.length, totalUploads: questionBank.uploads.length }); });
 
-// Check for duplicate questions
-function findDuplicate(newQuestion, existingQuestions) {
-  // Check by ID first
-  if (newQuestion.id) {
-    const idMatch = existingQuestions.find(q => q.id === newQuestion.id);
-    if (idMatch) return { type: 'id', question: idMatch };
-  }
-  
-  // Check by question text (normalized)
-  const normalizedNew = newQuestion.question.toLowerCase().trim();
-  const textMatch = existingQuestions.find(q => 
-    q.question.toLowerCase().trim() === normalizedNew
-  );
-  if (textMatch) return { type: 'text', question: textMatch };
-  
-  return null;
-}
+app.use(express.static(path.join(__dirname)));
 
-// Apply merge strategy
-function applyMergeStrategy(newQuestion, existingQuestion, strategy) {
-  switch (strategy) {
-    case 'skip':
-      return null; // Skip the new question
-      
-    case 'overwrite':
-      // Keep metadata from existing but update content
-      return {
-        ...newQuestion,
-        source: existingQuestion.source // Keep original source
-      };
-      
-    case 'force':
-      // Create new question with new ID
-      const maxId = Math.max(0, ...questionBank.questions.map(q => q.id || 0));
-      return {
-        ...newQuestion,
-        id: maxId + 1
-      };
-      
-    case 'merge':
-      // Merge non-empty fields
-      return {
-        ...existingQuestion,
-        ...Object.fromEntries(
-          Object.entries(newQuestion).filter(([key, value]) => 
-            value !== '' && value != null && key !== 'source'
-          )
-        ),
-        source: existingQuestion.source // Keep original source
-      };
-      
-    default:
-      return null;
-  }
-}
-
-// Encryption utilities for secure API key storage
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
-const IV_LENGTH = 16;
-
-function encryptApiKey(text) {
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipher('aes-256-cbc', ENCRYPTION_KEY);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
-}
-
-function decryptApiKey(text) {
-  try {
-    const textParts = text.split(':');
-    textParts.shift(); // Remove IV (not used in legacy crypto)
-    const encryptedText = textParts.join(':');
-    const decipher = crypto.createDecipher('aes-256-cbc', ENCRYPTION_KEY);
-    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
-  } catch (error) {
-    console.error('🔓 Decryption failed:', error);
-    return null;
-  }
-}
-
-// Global AI configuration (supporting multiple providers)
-let OPENAI_KEY = process.env.OPENAI_API_KEY;
-let GEMINI_KEY = process.env.GEMINI_API_KEY;
-let CURRENT_PROVIDER = null;
-let CURRENT_API_KEY = null;
-let USE_AI = false;
-let AI_STATUS = {
-  available: false,
-  lastChecked: null,
-  error: null,
-  checking: false,
-  provider: null
-};
-
-// Initialize based on environment variables
-if (OPENAI_KEY) {
-  CURRENT_PROVIDER = 'openai';
-  CURRENT_API_KEY = OPENAI_KEY;
-  USE_AI = true;
-} else if (GEMINI_KEY) {
-  CURRENT_PROVIDER = 'gemini';
-  CURRENT_API_KEY = GEMINI_KEY;
-  USE_AI = true;
-}
-
-if (!USE_AI) {
-  console.warn('Warning: No AI API keys set. The server will start in MOCK mode and return placeholder assessments. To enable real AI, set OPENAI_API_KEY or GEMINI_API_KEY in your .env.');
-}
-
-// Enhanced API validation functions for multiple providers
+// Validate OpenAI API key by making a lightweight test request
 async function validateOpenAIKey(apiKey) {
   if (!apiKey) return { valid: false, error: 'No API key provided' };
-  
+
   try {
     console.log('🔍 Validating OpenAI API key...');
     const testPayload = {
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: 'Test' }],
+      messages: [ { role: 'user', content: 'Test message' } ],
       max_tokens: 5
     };
 
@@ -336,12 +64,9 @@ async function validateOpenAIKey(apiKey) {
       console.log('✅ OpenAI API key validated successfully');
       return { valid: true, error: null };
     } else {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       console.log('❌ OpenAI API key validation failed:', response.status, errorData);
-      return { 
-        valid: false, 
-        error: `API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}` 
-      };
+      return { valid: false, error: `API Error ${response.status}: ${errorData.error?.message || 'Unknown error'}` };
     }
   } catch (error) {
     console.error('❌ OpenAI validation network error:', error);
@@ -697,209 +422,52 @@ app.post('/api/assess', async (req, res) => {
 
 // Multi-CSV Upload Endpoint
 app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
-  console.log('📁 Multi-CSV upload request received');
-  
+  console.log('📁 Multi-CSV upload request (orchestrated) received');
+
   try {
-    const files = req.files;
+    const files = req.files || [];
     const options = JSON.parse(req.body.options || '{}');
-    const uploadId = crypto.randomUUID();
-    
-    console.log(`📊 Processing ${files.length} files with options:`, options);
-    
-    // Validate files
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
+
+    // support top-level fallback fields
+    if (req.body.preset) options.preset = options.preset || req.body.preset;
+    if (req.body.headersMap) {
+      try { options.headersMap = options.headersMap || JSON.parse(req.body.headersMap); } catch (e) { /* ignore */ }
     }
-    
-    // Initialize upload tracking
-    const uploadSummary = {
-      processed: 0,
-      added: 0,
-      updated: 0,
-      skipped: 0,
-      errors: []
+
+    if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
+
+    // Prepare context for uploadProcessor
+    const context = {
+      parseCSVContent,
+      convertToQuestionFormat,
+      questionBank,
+      saveQuestionBank,
+      createBackup,
+      findDuplicate,
+      applyMergeStrategy
     };
-    
-    const detailsPerFile = [];
-    const { mergeStrategy = 'skip', strictness = 'lenient' } = options;
-    
-    // Create backup before making changes
-    if (mergeStrategy === 'overwrite') {
-      await createBackup();
-    }
-    
-    // Process each file
-    for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
-      const file = files[fileIndex];
-      const fileDetail = {
-        filename: file.originalname,
-        size: file.size,
-        processed: 0,
-        added: 0,
-        updated: 0,
-        skipped: 0,
-        errors: []
-      };
-      
-      try {
-        console.log(`📄 Processing file: ${file.originalname}`);
-        
-        // Read file content
-        const csvContent = await fs.readFile(file.path, 'utf8');
-        const parseResult = parseCSVContent(csvContent);
-        
-        if (!parseResult || !parseResult.headers || !parseResult.rows) {
-          throw new Error('Failed to parse CSV content - invalid format');
-        }
-        
-        const { headers, rows } = parseResult;
-        console.log(`📋 Parsed ${rows.length} rows from ${file.originalname}`);
-        
-        // Validate required headers
-        const requiredHeaders = ['question'];
-        const missingHeaders = requiredHeaders.filter(h => 
-          !headers.some(header => header.toLowerCase().includes(h.toLowerCase()))
-        );
-        
-        if (missingHeaders.length > 0) {
-          const error = `Missing required headers: ${missingHeaders.join(', ')}`;
-          fileDetail.errors.push(error);
-          uploadSummary.errors.push(`${file.originalname}: ${error}`);
-          
-          if (strictness === 'strict') {
-            detailsPerFile.push(fileDetail);
-            continue; // Skip this file in strict mode
-          }
-        }
-        
-        // Process each row
-        for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-          const row = rows[rowIndex];
-          fileDetail.processed++;
-          uploadSummary.processed++;
-          
-          try {
-            // Convert to question format
-            const newQuestion = convertToQuestionFormat(
-              row, 
-              uploadId, 
-              rowIndex, 
-              file.originalname
-            );
-            
-            // Validate question
-            if (!newQuestion.question || newQuestion.question.trim() === '') {
-              throw new Error('Empty question text');
-            }
-            
-            // Auto-generate ID if missing
-            if (!newQuestion.id) {
-              const maxId = Math.max(0, ...questionBank.questions.map(q => q.id || 0));
-              newQuestion.id = maxId + 1;
-            }
-            
-            // Check for duplicates
-            const duplicate = findDuplicate(newQuestion, questionBank.questions);
-            
-            if (duplicate) {
-              const result = applyMergeStrategy(newQuestion, duplicate.question, mergeStrategy);
-              
-              if (result === null) {
-                // Skipped
-                fileDetail.skipped++;
-                uploadSummary.skipped++;
-              } else if (mergeStrategy === 'force') {
-                // Add as new
-                questionBank.questions.push(result);
-                fileDetail.added++;
-                uploadSummary.added++;
-              } else {
-                // Update existing
-                const existingIndex = questionBank.questions.findIndex(q => q.id === duplicate.question.id);
-                questionBank.questions[existingIndex] = result;
-                fileDetail.updated++;
-                uploadSummary.updated++;
-              }
-            } else {
-              // Add new question
-              questionBank.questions.push(newQuestion);
-              fileDetail.added++;
-              uploadSummary.added++;
-            }
-            
-          } catch (rowError) {
-            const error = `Row ${rowIndex + 1}: ${rowError.message}`;
-            fileDetail.errors.push(error);
-            uploadSummary.errors.push(`${file.originalname} - ${error}`);
-            
-            if (strictness === 'strict') {
-              throw new Error(`Strict mode: ${error}`);
-            }
-          }
-        }
-        
-      } catch (fileError) {
-        console.error(`❌ Error processing ${file.originalname}:`, fileError);
-        fileDetail.errors.push(fileError.message);
-        uploadSummary.errors.push(`${file.originalname}: ${fileError.message}`);
-      } finally {
-        // Clean up uploaded file
-        try {
-          await fs.unlink(file.path);
-        } catch (unlinkError) {
-          console.warn('Warning: Failed to clean up uploaded file:', unlinkError);
-        }
-      }
-      
-      detailsPerFile.push(fileDetail);
-    }
-    
-    // Record upload metadata
-    const uploadRecord = {
-      uploadId,
-      timestamp: new Date().toISOString(),
-      userId: options.owner || 'anonymous',
-      filesCount: files.length,
-      options,
-      summary: uploadSummary,
-      detailsPerFile
-    };
-    
-    questionBank.uploads.push(uploadRecord);
-    
-    // Save question bank
-    await saveQuestionBank();
-    
-    console.log(`✅ Upload complete: ${uploadSummary.added} added, ${uploadSummary.updated} updated, ${uploadSummary.skipped} skipped`);
-    
+
+    const result = await uploadProcessor.orchestrateUpload(files, options, context);
+
     res.json({
-      uploadId,
-      summary: uploadSummary,
-      detailsPerFile,
+      uploadId: result.uploadId,
+      summary: result.summary,
+      detailsPerFile: result.detailsPerFile,
       questionBankStats: {
         totalQuestions: questionBank.questions.length,
         totalUploads: questionBank.uploads.length
       }
     });
-    
+
   } catch (error) {
-    console.error('❌ Upload endpoint error:', error);
-    
-    // Clean up any uploaded files
+    console.error('❌ Upload orchestration failed:', error);
+    // cleanup
     if (req.files) {
-      for (const file of req.files) {
-        try {
-          await fs.unlink(file.path);
-        } catch (unlinkError) {
-          console.warn('Warning: Failed to clean up file:', unlinkError);
-        }
+      for (const f of req.files) {
+        try { await fs.unlink(f.path); } catch (e) { /* best-effort cleanup */ }
       }
     }
-    
-    res.status(500).json({
-      error: 'Upload processing failed',
-      message: error.message
-    });
+    res.status(500).json({ error: 'Upload processing failed', message: error.message });
   }
 });
 

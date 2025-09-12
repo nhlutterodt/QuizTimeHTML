@@ -41,3 +41,13 @@
 .schema-guide-modal.open .schema-guide-content { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 .schema-guide-body { max-height: 60vh; overflow: auto; padding: 12px 0; }
 .canon-hidden { display: none !important; }
+
+/* Schema Creator styles */
+.schema-creator { max-width: 820px; margin: auto; padding: 14px; background: #fff; border-radius: 8px; border:1px solid #f2f2f2; }
+.schema-creator .row { display:flex; gap:8px; align-items:flex-start; }
+.schema-creator .col { flex:1; }
+.schema-creator .header-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.schema-creator .mapping-table { width:100%; border-collapse:collapse; margin-top:8px; }
+.schema-creator .mapping-table th, .schema-creator .mapping-table td { padding:6px; border:1px solid #eee; }
+.schema-creator .mapping-actions { display:flex; gap:8px; margin-top:8px; }
+.schema-creator .small { font-size:0.9em; color:#666 }

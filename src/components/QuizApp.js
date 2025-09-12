@@ -102,6 +102,7 @@ export class QuizApp {
           <div class="header-controls">
             <button id="configBtn" class="btn btn-secondary">Configuration</button>
             <button id="schemaGuideBtn" class="btn btn-info">Schema Guide</button>
+            <button id="openSchemaCreatorBtnHeader" class="btn btn-outline">Create Schema</button>
             <button id="pauseBtn" class="btn btn-warning hidden">Pause</button>
             <button id="resumeBtn" class="btn btn-success hidden">Resume</button>
             <button id="downloadParseReportBtn" class="btn btn-secondary">📥 Parse Report</button>
@@ -289,6 +290,20 @@ export class QuizApp {
     const schemaBtn = DOMHelpers.getElementById('schemaGuideBtn');
     if (schemaBtn && this.schemaGuide) {
       this.eventManager.on(schemaBtn, 'click', () => this.schemaGuide.show());
+    }
+
+    // Header quick access to Schema Creator (lazy load)
+    const openCreatorHeaderBtn = DOMHelpers.getElementById('openSchemaCreatorBtnHeader');
+    if (openCreatorHeaderBtn) {
+      this.eventManager.on(openCreatorHeaderBtn, 'click', () => {
+        import('./SchemaCreator.js').then(mod => {
+          const creator = new mod.SchemaCreator(document.body);
+          creator.show();
+        }).catch(err => {
+          console.error('Failed to open Schema Creator from header', err);
+          this.showError('Failed to open Schema Creator');
+        });
+      });
     }
 
     // Download parse report button
