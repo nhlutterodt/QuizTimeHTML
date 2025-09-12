@@ -37,6 +37,10 @@
 /* Utility classes */
 .hidden { display: none !important; }
 .muted { color: #666; }
+/* Fade helper used by DOMHelpers.toggleVisibility(, , true) */
+.fade { transition: opacity 0.28s ease; }
+.fade.hidden { opacity: 0; }
+.fade:not(.hidden) { opacity: 1; }
 .spinner { display: inline-block; margin-left: 8px; width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid rgba(0,0,0,0.15); border-top-color: rgba(0,0,0,0.6); animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 

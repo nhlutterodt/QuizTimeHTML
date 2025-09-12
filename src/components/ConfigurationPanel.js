@@ -309,6 +309,18 @@ export class ConfigurationPanel {
 
     // Real-time validation
     this.attachValidationListeners();
+
+    // Delegated handler for remove file buttons inside filePreviewList
+    const filePreviewList = document.getElementById('filePreviewList');
+    if (filePreviewList) {
+      this.eventManager.on(filePreviewList, 'click', (e) => {
+        const btn = e.target.closest('.remove-file-btn');
+        if (btn) {
+          const preview = btn.closest('.file-preview');
+          if (preview) preview.remove();
+        }
+      });
+    }
   }
 
   /**
@@ -457,12 +469,12 @@ export class ConfigurationPanel {
     const multiSection = document.getElementById('multiUploadSection');
     
     if (isMultiMode) {
-      singleSection.style.display = 'none';
-      multiSection.style.display = 'block';
+      DOMHelpers.toggleVisibility(singleSection, false);
+      DOMHelpers.toggleVisibility(multiSection, true);
       this.initializeUploadLimits();
     } else {
-      singleSection.style.display = 'block';
-      multiSection.style.display = 'none';
+      DOMHelpers.toggleVisibility(singleSection, true);
+      DOMHelpers.toggleVisibility(multiSection, false);
       this.clearSelectedFiles();
     }
   }
@@ -575,9 +587,9 @@ export class ConfigurationPanel {
       }
     }
     
-    // Show preview section and update upload button
-    document.getElementById('filePreviewSection').style.display = 'block';
-    document.getElementById('uploadFiles').disabled = !allValid || this.selectedFiles.length === 0;
+  // Show preview section and update upload button
+  DOMHelpers.toggleVisibility(document.getElementById('filePreviewSection'), true, true);
+  document.getElementById('uploadFiles').disabled = !allValid || this.selectedFiles.length === 0;
   }
 
   /**
@@ -703,7 +715,7 @@ export class ConfigurationPanel {
         <span class="file-status">${statusIcon}</span>
         <span class="file-name">${fileInfo.name}</span>
         <span class="file-info">${fileInfo.sizeMB}MB, ${fileInfo.rowCount} rows</span>
-        <button class="remove-file-btn" onclick="this.closest('.file-preview').remove()">×</button>
+  <button class="remove-file-btn" type="button" aria-label="Remove file">×</button>
       </div>
       ${fileInfo.errors.length > 0 ? `
         <div class="file-errors">
@@ -740,11 +752,11 @@ export class ConfigurationPanel {
    * Clear all selected files
    */
   clearSelectedFiles() {
-    this.selectedFiles = [];
-    document.getElementById('filePreviewList').innerHTML = '';
-    document.getElementById('filePreviewSection').style.display = 'none';
-    document.getElementById('multiCsvFiles').value = '';
-    document.getElementById('uploadFiles').disabled = true;
+  this.selectedFiles = [];
+  document.getElementById('filePreviewList').innerHTML = '';
+  DOMHelpers.toggleVisibility(document.getElementById('filePreviewSection'), false);
+  document.getElementById('multiCsvFiles').value = '';
+  document.getElementById('uploadFiles').disabled = true;
   }
 
   /**
@@ -767,8 +779,8 @@ export class ConfigurationPanel {
     const progressText = document.getElementById('progressText');
     const resultsSection = document.getElementById('uploadResults');
     
-    progressSection.style.display = 'block';
-    resultsSection.style.display = 'none';
+  DOMHelpers.toggleVisibility(progressSection, true);
+  DOMHelpers.toggleVisibility(resultsSection, false);
     
     try {
       // Prepare files and options for professional API
@@ -791,7 +803,7 @@ export class ConfigurationPanel {
       
       // Show results
       setTimeout(() => {
-        progressSection.style.display = 'none';
+  DOMHelpers.toggleVisibility(progressSection, false);
         this.showUploadResults(result);
       }, 500);
       
@@ -812,7 +824,7 @@ export class ConfigurationPanel {
       
     } catch (error) {
       console.error('Upload error:', error);
-      progressSection.style.display = 'none';
+  DOMHelpers.toggleVisibility(progressSection, false);
       this.showUploadMessage(`Upload failed: ${error.message}`, 'error');
       
       // Also notify parent app of error
@@ -889,7 +901,7 @@ export class ConfigurationPanel {
     `;
     
     resultsSection.innerHTML = resultsHTML;
-    resultsSection.style.display = 'block';
+  DOMHelpers.toggleVisibility(resultsSection, true);
   }
 
   /**
@@ -898,7 +910,7 @@ export class ConfigurationPanel {
   showUploadMessage(message, type = 'info') {
     const resultsSection = document.getElementById('uploadResults');
     resultsSection.innerHTML = `<div class="upload-message ${type}">${message}</div>`;
-    resultsSection.style.display = 'block';
+  DOMHelpers.toggleVisibility(resultsSection, true);
   }
 
   /**

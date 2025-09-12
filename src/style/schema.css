@@ -32,8 +32,12 @@
 .note { font-size: 0.9em; color: #666; }
 
 /* Modal display helpers */
-.schema-guide-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1200; display: none; }
-.schema-guide-content { position: fixed; left: 50%; top: 10%; transform: translateX(-50%); max-width: 920px; width: calc(100% - 40px); z-index: 1201; display: none; }
+.schema-guide-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1200; opacity: 0; visibility: hidden; transition: opacity 200ms ease, visibility 200ms ease; }
+.schema-guide-content { position: fixed; left: 50%; top: 10%; transform: translateX(-50%) translateY(-8px); max-width: 920px; width: calc(100% - 40px); z-index: 1201; opacity: 0; visibility: hidden; transition: opacity 200ms ease, transform 200ms ease, visibility 200ms ease; background: #fff; padding: 18px; border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
 .schema-guide-modal { z-index: 1202; }
+
+/* Open state controlled by JS via class toggle */
+.schema-guide-modal.open .schema-guide-backdrop { opacity: 1; visibility: visible; }
+.schema-guide-modal.open .schema-guide-content { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 .schema-guide-body { max-height: 60vh; overflow: auto; padding: 12px 0; }
 .canon-hidden { display: none !important; }

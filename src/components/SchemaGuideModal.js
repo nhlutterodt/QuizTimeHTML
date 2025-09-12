@@ -14,12 +14,12 @@ export class SchemaGuideModal {
     // Avoid re-creating if already present
     if (DOMHelpers.getElementById(this.modalId)) return;
 
-    const modal = DOMHelpers.createElement('div', {
+  const modal = DOMHelpers.createElement('div', {
       id: this.modalId,
       className: 'schema-guide-modal',
       innerHTML: `
-        <div class="schema-guide-backdrop" style="display:none"></div>
-        <div class="schema-guide-content" role="dialog" aria-modal="true" style="display:none">
+    <div class="schema-guide-backdrop"></div>
+    <div class="schema-guide-content" role="dialog" aria-modal="true">
           <header class="schema-guide-header">
             <h2>CSV Schema Guide</h2>
             <div style="display:flex;gap:8px;align-items:center">
@@ -206,19 +206,13 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
   show() {
     const modal = DOMHelpers.getElementById(this.modalId);
     if (!modal) return;
-    const backdrop = modal.querySelector('.schema-guide-backdrop');
-    const content = modal.querySelector('.schema-guide-content');
-    if (backdrop) backdrop.style.display = 'block';
-    if (content) content.style.display = 'block';
+  modal.classList.add('open');
   }
 
   hide() {
     const modal = DOMHelpers.getElementById(this.modalId);
     if (!modal) return;
-    const backdrop = modal.querySelector('.schema-guide-backdrop');
-    const content = modal.querySelector('.schema-guide-content');
-    if (backdrop) backdrop.style.display = 'none';
-    if (content) content.style.display = 'none';
+  modal.classList.remove('open');
   }
 
   destroy() {

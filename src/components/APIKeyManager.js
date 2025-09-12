@@ -333,7 +333,7 @@ export class APIKeyManager {
                 keyInput.value = ''; // Clear for security
                 
                 // Show refresh button now that AI is available
-                document.getElementById('status-refresh').style.display = 'inline-block';
+                DOMHelpers.toggleVisibility(document.getElementById('status-refresh'), true);
             } else {
                 this.showValidationResult(`❌ Validation failed: ${result.error}`, 'error');
             }
@@ -379,9 +379,9 @@ export class APIKeyManager {
         providerRadios.forEach(radio => radio.checked = false);
         
         // Hide sections using CSS classes
-        document.getElementById('api-key-section').classList.remove('visible');
-        document.getElementById('ai-configuration').classList.remove('enabled');
-        document.getElementById('status-refresh').style.display = 'none';
+    DOMHelpers.toggleVisibility(document.getElementById('api-key-section'), false);
+    DOMHelpers.toggleVisibility(document.getElementById('ai-configuration'), false);
+    DOMHelpers.toggleVisibility(document.getElementById('status-refresh'), false);
         
         this.updateUI();
         this.notifyStatusChange();

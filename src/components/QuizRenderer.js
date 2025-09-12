@@ -425,7 +425,9 @@ export class QuizRenderer {
    * Handle keyboard shortcuts
    */
   handleKeyboard(event) {
-    if (this.isPaused || !this.container.closest('.quiz-container').style.display !== 'none') {
+    const quizContainer = this.container.closest('.quiz-container');
+    const containerHidden = quizContainer ? quizContainer.classList.contains('hidden') : false;
+    if (this.isPaused || containerHidden) {
       return;
     }
 
@@ -480,9 +482,12 @@ export class QuizRenderer {
       <div class="no-questions">
         <h2>No Questions Available</h2>
         <p>No questions match your criteria or no CSV file has been uploaded.</p>
-        <button class="btn btn-primary" onclick="window.location.reload()">Return to Configuration</button>
+        <button id="noQuestionsReturnBtn" class="btn btn-primary">Return to Configuration</button>
       </div>
     `;
+
+    const returnBtn = DOMHelpers.getElementById('noQuestionsReturnBtn');
+    if (returnBtn) this.eventManager.on(returnBtn, 'click', () => window.location.reload());
   }
 
   /**

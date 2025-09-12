@@ -16,27 +16,6 @@
   <input type="text" id="prompt" value="Say hello!" size="40" />
   <button id="sendBtn">Send to ChatGPT</button>
   <div id="response"></div>
-  <script>
-    document.getElementById('sendBtn').onclick = async function() {
-      const prompt = document.getElementById('prompt').value;
-      document.getElementById('response').textContent = 'Loading...';
-      try {
-        const res = await fetch('/api/assess', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questionText: prompt, userAnswerArray: [], correctAnswerArray: [] })
-        });
-        if (!res.ok) {
-          let err = await res.text();
-          document.getElementById('response').textContent = 'Error: ' + err;
-          return;
-        }
-        const data = await res.json();
-        document.getElementById('response').textContent = data.assessment || JSON.stringify(data);
-      } catch (e) {
-        document.getElementById('response').textContent = 'Request failed: ' + e;
-      }
-    };
-  </script>
+  <script type="module" src="src/tests/openai-test.js"></script>
 </body>
 </html>

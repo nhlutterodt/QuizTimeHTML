@@ -162,11 +162,11 @@ node --watch server.js  # With hot reload (Node 18+)</div>
         </div>
 
         <h2>🔧 Quick Actions</h2>
-        <button onclick="startServer()">🚀 Start Server (Task)</button>
-        <button onclick="startWithReload()">🔄 Start with Hot Reload</button>
-        <button onclick="stopServer()">🛑 Stop All Servers</button>
-        <button onclick="checkStatus()">📊 Check Status</button>
-        <button onclick="openQuiz()">🎯 Open Quiz</button>
+    <button id="startServerBtn">🚀 Start Server (Task)</button>
+    <button id="startWithReloadBtn">🔄 Start with Hot Reload</button>
+    <button id="stopServerBtn">🛑 Stop All Servers</button>
+    <button id="checkStatusBtn">📊 Check Status</button>
+    <button id="openQuizBtn">🎯 Open Quiz</button>
 
         <div class="success" style="margin-top: 20px;">
             <strong>💡 Pro Tip:</strong> Use "Start with Hot Reload" during development - it automatically restarts the server when you save changes to server.js!
@@ -183,62 +183,6 @@ node --watch server.js  # With hot reload (Node 18+)</div>
 └── 📋 package.json        # Project configuration</div>
     </div>
 
-    <script>
-        async function checkStatus() {
-            try {
-                const response = await fetch('http://localhost:3001/diag');
-                const data = await response.json();
-                document.getElementById('serverStatus').className = 'status-indicator status-running';
-                document.getElementById('serverStatus').innerHTML = '🟢 Server Status: Running on port 3001';
-            } catch (error) {
-                document.getElementById('serverStatus').className = 'status-indicator status-stopped';
-                document.getElementById('serverStatus').innerHTML = '🔴 Server Status: Not Running';
-            }
-        }
-
-        function startServer() {
-            // Use VS Code command API if available
-            if (window.vscode) {
-                window.vscode.postMessage({
-                    command: 'runTask',
-                    taskName: 'Start Quiz Server'
-                });
-            } else {
-                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Start Quiz Server"');
-            }
-        }
-
-        function startWithReload() {
-            if (window.vscode) {
-                window.vscode.postMessage({
-                    command: 'runTask',
-                    taskName: 'Start with Hot Reload'
-                });
-            } else {
-                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Start with Hot Reload"');
-            }
-        }
-
-        function stopServer() {
-            if (window.vscode) {
-                window.vscode.postMessage({
-                    command: 'runTask',
-                    taskName: 'Stop All Node Servers'
-                });
-            } else {
-                alert('Use VS Code Command Palette (Ctrl+Shift+P) → "Tasks: Run Task" → "Stop All Node Servers"');
-            }
-        }
-
-        function openQuiz() {
-            window.open('http://localhost:3001/User_Acceptance.html', '_blank');
-        }
-
-        // Check status on page load
-        checkStatus();
-        
-        // Check status every 5 seconds
-        setInterval(checkStatus, 5000);
-    </script>
+    <script type="module" src="src/scripts/dev-guide.js"></script>
 </body>
 </html>

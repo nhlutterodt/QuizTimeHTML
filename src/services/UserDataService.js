@@ -369,11 +369,12 @@ export class UserDataService {
             };
             
             this.updateProfile(profile);
-            form.style.display = 'none';
+            // Hide profile form using class-based helper
+            DOMHelpers.toggleVisibility(form, false, true);
         });
 
         skipBtn?.addEventListener('click', () => {
-            form.style.display = 'none';
+            DOMHelpers.toggleVisibility(form, false, true);
         });
     }
 

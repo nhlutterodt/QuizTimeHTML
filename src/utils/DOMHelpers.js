@@ -42,27 +42,19 @@ export class DOMHelpers {
    */
   static toggleVisibility(element, show, transition = false) {
     if (!element) return;
-    
+    // Prefer CSS class toggling for show/hide. CSS provides .hidden and optional .fade for transitions.
     if (transition) {
-      element.style.transition = 'opacity 0.3s ease';
+      element.classList.add('fade');
+    } else {
+      element.classList.remove('fade');
     }
-    
+
     if (show) {
-      element.style.display = 'block';
       element.classList.remove('hidden');
-      if (transition) {
-        element.style.opacity = '1';
-      }
+      element.setAttribute('aria-hidden', 'false');
     } else {
       element.classList.add('hidden');
-      if (transition) {
-        element.style.opacity = '0';
-        setTimeout(() => {
-          element.style.display = 'none';
-        }, 300);
-      } else {
-        element.style.display = 'none';
-      }
+      element.setAttribute('aria-hidden', 'true');
     }
   }
 

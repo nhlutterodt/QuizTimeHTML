@@ -756,9 +756,13 @@ export class ResultsManager {
       <div class="no-results">
         <h2>No Results Available</h2>
         <p>No quiz results to display.</p>
-        <button class="btn btn-primary" onclick="window.location.reload()">Return to Configuration</button>
+        <button id="resultsReturnBtn" class="btn btn-primary">Return to Configuration</button>
       </div>
     `;
+
+    // Wire the return button
+    const returnBtn = DOMHelpers.getElementById('resultsReturnBtn');
+    if (returnBtn) this.eventManager.on(returnBtn, 'click', () => window.location.reload());
   }
 
   /**
