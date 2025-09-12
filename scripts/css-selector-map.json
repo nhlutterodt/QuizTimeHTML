@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-11T22:08:50.437Z",
+  "generatedAt": "2025-09-12T00:07:44.693Z",
   "filesScanned": 7,
   "map": {
     ".upload-section": {
@@ -520,6 +520,36 @@
       ]
     },
     ".note": {
+      "count": 1,
+      "files": [
+        "src\\style\\schema.css"
+      ]
+    },
+    ".schema-guide-backdrop": {
+      "count": 1,
+      "files": [
+        "src\\style\\schema.css"
+      ]
+    },
+    ".schema-guide-content": {
+      "count": 1,
+      "files": [
+        "src\\style\\schema.css"
+      ]
+    },
+    ".schema-guide-modal": {
+      "count": 1,
+      "files": [
+        "src\\style\\schema.css"
+      ]
+    },
+    ".schema-guide-body": {
+      "count": 1,
+      "files": [
+        "src\\style\\schema.css"
+      ]
+    },
+    ".canon-hidden": {
       "count": 1,
       "files": [
         "src\\style\\schema.css"

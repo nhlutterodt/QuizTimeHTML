@@ -30,3 +30,10 @@
 .download-json { margin-left: auto; }
 
 .note { font-size: 0.9em; color: #666; }
+
+/* Modal display helpers */
+.schema-guide-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1200; display: none; }
+.schema-guide-content { position: fixed; left: 50%; top: 10%; transform: translateX(-50%); max-width: 920px; width: calc(100% - 40px); z-index: 1201; display: none; }
+.schema-guide-modal { z-index: 1202; }
+.schema-guide-body { max-height: 60vh; overflow: auto; padding: 12px 0; }
+.canon-hidden { display: none !important; }

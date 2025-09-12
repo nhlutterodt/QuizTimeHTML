@@ -285,6 +285,12 @@ export class QuizApp {
       this.eventManager.on(configBtn, 'click', () => this.showConfiguration());
     }
 
+    // Schema Guide button wiring
+    const schemaBtn = DOMHelpers.getElementById('schemaGuideBtn');
+    if (schemaBtn && this.schemaGuide) {
+      this.eventManager.on(schemaBtn, 'click', () => this.schemaGuide.show());
+    }
+
     // Download parse report button
     const downloadBtn = DOMHelpers.getElementById('downloadParseReportBtn');
     if (downloadBtn) {
