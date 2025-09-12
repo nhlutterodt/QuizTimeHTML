@@ -1,0 +1,5 @@
+{
+  "preset": "auto",
+  "headersMap": { " Q ": "question", "Option A": "option_a" },
+  "options": { "snapshotRowLimit": 10, "mergeStrategy": "skip", "includeFullParseReport": false }
+}

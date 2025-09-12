@@ -1,0 +1,6 @@
+{
+  "uploadId": "upload_1694580000_abc123",
+  "summary": { "processed": 2, "added": 2, "updated": 0, "skipped": 0, "errors": [] },
+  "detailsPerFile": [ { "filename": "request.csv", "size": 123, "processed": 2, "added": 2, "updated": 0, "skipped": 0, "errors": [] } ],
+  "lastParseSnapshot": { "timestamp": "2025-09-12T00:00:00.000Z", "rows": 2 }
+}

@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-  "test": "node ./scripts/run-tests.cjs",
+    "test": "node ./scripts/run-tests.cjs",
+    "validate-schemas": "node ./scripts/validate-schemas.cjs",
     "stop": "taskkill /F /IM node.exe 2>nul || true"
   },
   "keywords": [
@@ -27,9 +28,10 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
+    "ajv": "^8.17.1",
     "glob": "^11.0.3",
     "postcss": "^8.5.6",
-  "postcss-safe-parser": "^7.0.1",
-  "supertest": "^6.3.3"
+    "postcss-safe-parser": "^7.0.1",
+    "supertest": "^6.3.3"
   }
 }
