@@ -109,6 +109,20 @@ export class ResultsManager {
 
     this.attachEventListeners();
     this.renderCharts();
+    // Apply progress widths for section results (uses data-progress -> CSS variable)
+    this.applyProgressWidths();
+  }
+
+  /**
+   * Apply widths to .section-progress elements based on their data-progress attribute
+   */
+  applyProgressWidths() {
+    const progressEls = this.container.querySelectorAll('.section-progress');
+    progressEls.forEach(el => {
+      const pct = el.getAttribute('data-progress') || '0';
+      // Set CSS variable --section-progress-width which is used in CSS to set width
+      el.style.setProperty('--section-progress-width', `${pct}%`);
+    });
   }
 
   /**
@@ -179,7 +193,7 @@ export class ResultsManager {
             <span class="section-details">(${result.correct}/${result.total})</span>
           </div>
           <div class="section-bar">
-            <div class="section-progress" style="width: ${percentage}%"></div>
+            <div class="section-progress" data-progress="${percentage}"></div>
           </div>
         </div>
       `;

@@ -85,7 +85,7 @@ export class APIKeyManager {
                 <div class="ai-status-indicator" id="ai-status-indicator">
                     <span class="status-dot" id="status-dot"></span>
                     <span class="status-text" id="status-text">AI Assessment Disabled</span>
-                    <button class="status-refresh" id="status-refresh" title="Refresh AI Status" style="display: none;">🔄</button>
+                    <button class="status-refresh hidden" id="status-refresh" title="Refresh AI Status">🔄</button>
                 </div>
                 
                 <!-- AI Configuration section - hidden by default with CSS -->

@@ -102,14 +102,14 @@ export class QuizApp {
           <div class="header-controls">
             <button id="configBtn" class="btn btn-secondary">Configuration</button>
             <button id="schemaGuideBtn" class="btn btn-info">Schema Guide</button>
-            <button id="pauseBtn" class="btn btn-warning" style="display: none;">Pause</button>
-            <button id="resumeBtn" class="btn btn-success" style="display: none;">Resume</button>
+            <button id="pauseBtn" class="btn btn-warning hidden">Pause</button>
+            <button id="resumeBtn" class="btn btn-success hidden">Resume</button>
             <button id="downloadParseReportBtn" class="btn btn-secondary">📥 Parse Report</button>
           </div>
         </header>
 
         <!-- Navigation -->
-        <nav id="navigationContainer" class="quiz-navigation" style="display: none;"></nav>
+  <nav id="navigationContainer" class="quiz-navigation hidden"></nav>
 
         <!-- Main Content -->
         <main class="app-main">
@@ -117,17 +117,17 @@ export class QuizApp {
           <div id="configurationContainer" class="container configuration-container"></div>
           
           <!-- Quiz Container -->
-          <div id="quizContainer" class="container quiz-container" style="display: none;"></div>
+          <div id="quizContainer" class="container quiz-container hidden"></div>
           
           <!-- Results Container -->
-          <div id="resultsContainer" class="container results-container" style="display: none;"></div>
+          <div id="resultsContainer" class="container results-container hidden"></div>
         </main>
 
         <!-- Status Messages -->
         <div id="statusMessages" class="status-messages"></div>
         
         <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div id="loadingOverlay" class="loading-overlay hidden">
           <div class="loading-spinner"></div>
           <div class="loading-text">Loading...</div>
         </div>

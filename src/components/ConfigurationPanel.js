@@ -76,7 +76,7 @@ export class ConfigurationPanel {
             </div>
 
             <!-- Multiple CSV Upload -->
-            <div id="multiUploadSection" class="upload-section" style="display: none;">
+            <div id="multiUploadSection" class="upload-section hidden">
               <!-- Upload Limits Display -->
               <div class="upload-limits">
                 <span class="limit-text" id="uploadLimitsText">Max 5 files, 10MB total, 1000 rows per file</span>
@@ -87,7 +87,7 @@ export class ConfigurationPanel {
                 <div class="drop-zone-content">
                   <div class="drop-icon">📁</div>
                   <p>Drag & drop CSV files here or <span class="browse-link" id="browseCsvs">browse files</span></p>
-                  <input type="file" id="multiCsvFiles" accept=".csv" multiple style="display: none;">
+                  <input type="file" id="multiCsvFiles" accept=".csv" multiple class="hidden">
                 </div>
               </div>
 
@@ -112,7 +112,7 @@ export class ConfigurationPanel {
               </div>
 
               <!-- File Preview Section -->
-              <div id="filePreviewSection" class="file-preview-section" style="display: none;">
+              <div id="filePreviewSection" class="file-preview-section hidden">
                 <h4>File Previews</h4>
                 <div id="filePreviewList" class="file-preview-list"></div>
                 
@@ -124,7 +124,7 @@ export class ConfigurationPanel {
               </div>
 
               <!-- Upload Progress -->
-              <div id="uploadProgress" class="upload-progress" style="display: none;">
+              <div id="uploadProgress" class="upload-progress hidden">
                 <div class="upload-progress-bar">
                   <div class="upload-progress-fill" id="progressFill"></div>
                 </div>
@@ -132,7 +132,7 @@ export class ConfigurationPanel {
               </div>
 
               <!-- Upload Results -->
-              <div id="uploadResults" class="upload-results" style="display: none;"></div>
+              <div id="uploadResults" class="upload-results hidden"></div>
             </div>
           </div>
 

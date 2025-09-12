@@ -63,8 +63,8 @@ export class QuizRenderer {
           <button id="submitQuizBtn" class="btn btn-success">Submit Quiz</button>
         </div>
 
-        <!-- Pause Overlay -->
-        <div class="pause-overlay" id="pauseOverlay" style="display: none;">
+  <!-- Pause Overlay -->
+  <div class="pause-overlay hidden" id="pauseOverlay">
           <div class="pause-content">
             <h2>Quiz Paused</h2>
             <p>Click Resume to continue the quiz</p>
@@ -125,7 +125,7 @@ export class QuizRenderer {
       <div class="question-text">
         ${DOMHelpers.sanitizeHTML(question.question)}
       </div>
-      ${question.explanation ? `<div class="question-hint" style="display: none;">
+      ${question.explanation ? `<div class="question-hint hidden">
         <strong>Hint:</strong> ${DOMHelpers.sanitizeHTML(question.explanation)}
       </div>` : ''}
     `;
