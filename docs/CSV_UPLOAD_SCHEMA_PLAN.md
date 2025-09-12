@@ -203,6 +203,8 @@ Header normalization and aliasing rules
 
 - Normalize headers: trim, lowercase, replace spaces with underscores.
 
+- `headersMap` keys are normalized with the same rules before matching, so supplied keys are matched case- and whitespace-insensitively.
+
 - Known aliases (non-exhaustive):
 
   - `q`, `question_text` -> `question`
@@ -223,6 +225,8 @@ Upload endpoint (existing or new) should accept multipart/form-data with:
 - `preset` (string) — one of `auto|multiple-choice|short-answer|true-false|numeric`
 
 - `headersMap` (JSON string, optional) — explicit map of CSV headers to canonical fields
+
+  Note: `headersMap` keys are matched fuzzily — the server normalizes header names (trim, lowercase, replace spaces with underscores) before lookup. Clients may supply keys with different casing or extra whitespace. Example: `{ " Q ": "question", "Option A": "option_a" }` will correctly map a CSV header of `Q` or ` q ` to the canonical `question` field.
 
 - `options` (JSON string, optional) — { snapshotRowLimit, mergeStrategy }
 

@@ -182,7 +182,7 @@ export class QuestionSchema {
     const normalized = csvHeader.toLowerCase()
       .replace(/[^a-z0-9_]/g, '_')
       .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
+      .replace(/(^_|_$)/g, '');
     
     // Check direct mapping
     for (const [schemaField, csvVariants] of Object.entries(this.CSV_FIELD_MAPPING)) {
@@ -233,34 +233,57 @@ export class QuestionSchema {
   /**
    * Validate question against schema
    */
-  static validate(question) {
+  static validate(question, options = {}) {
+    // options: { requireId: boolean }
+    const { requireId = true } = options;
     const errors = [];
     const warnings = [];
-    const schema = this.CORE_SCHEMA;
 
-    // Check required fields
+    // Delegate specific checks to helper methods to keep cognitive complexity low
+    this._validateRequiredFields(question, errors, requireId);
+    this._validateTypeSpecific(question, errors);
+    this._validateValues(question, errors);
+    this._collectWarnings(question, warnings);
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings
+    };
+  }
+
+  // Helper: required fields check
+  static _validateRequiredFields(question, errors, requireId) {
+    const schema = this.CORE_SCHEMA;
     for (const [field, definition] of Object.entries(schema)) {
-      if (definition.required && (!question[field] || question[field] === '')) {
+      if (!definition.required) continue;
+      const val = question[field];
+      const missing = val === undefined || val === null || val === '';
+      if (missing) {
+        if (field === 'id' && !requireId) continue;
         errors.push(`Required field '${field}' is missing or empty`);
       }
     }
+  }
 
-    // Type-specific validation
-    if (question.type === 'multiple_choice') {
-      if (!question.options || question.options.length < 2) {
-        errors.push('Multiple choice questions must have at least 2 options');
-      }
-      
-      if (question.correct_answer) {
-        const answerLetter = question.correct_answer.toUpperCase();
-        const answerIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(answerLetter);
-        if (answerIndex === -1 || answerIndex >= question.options.length) {
-          errors.push(`Correct answer '${question.correct_answer}' doesn't match available options`);
-        }
-      }
+  // Helper: type-specific validation
+  static _validateTypeSpecific(question, errors) {
+    if (question.type !== 'multiple_choice') return;
+    if (!question.options || question.options.length < 2) {
+      errors.push('Multiple choice questions must have at least 2 options');
     }
 
-    // Value validation
+    if (question.correct_answer) {
+      const answerLetter = question.correct_answer.toString().toUpperCase();
+      const answerIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(answerLetter);
+      if (answerIndex === -1 || answerIndex >= (question.options || []).length) {
+        errors.push(`Correct answer '${question.correct_answer}' doesn't match available options`);
+      }
+    }
+  }
+
+  // Helper: numeric/value checks
+  static _validateValues(question, errors) {
     if (question.points !== undefined && question.points < 0) {
       errors.push('Points cannot be negative');
     }
@@ -268,8 +291,10 @@ export class QuestionSchema {
     if (question.time_limit !== undefined && question.time_limit < 0) {
       errors.push('Time limit cannot be negative');
     }
+  }
 
-    // Warnings for missing optional but recommended fields
+  // Helper: non-fatal warnings
+  static _collectWarnings(question, warnings) {
     if (!question.explanation || question.explanation.trim() === '') {
       warnings.push('No explanation provided');
     }
@@ -277,12 +302,6 @@ export class QuestionSchema {
     if (!question.category || question.category === 'General') {
       warnings.push('Question not categorized');
     }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings
-    };
   }
 
   /**

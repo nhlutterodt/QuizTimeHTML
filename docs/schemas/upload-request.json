@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Upload CSV Request",
+  "type": "object",
+  "description": "Describes accepted fields for the multipart/form-data upload endpoint. File(s) are expected via the multipart 'files' field and are not represented here as JSON.",
+  "properties": {
+    "preset": {
+      "type": "string",
+      "enum": ["auto", "multiple-choice", "short-answer", "true-false", "numeric"],
+      "default": "auto",
+      "description": "Schema preset to apply during parsing. Optional; defaults to 'auto'."
+    },
+    "headersMap": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Map of CSV header -> canonical field. Keys are matched case- and whitespace-insensitively (server normalizes keys)."
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "snapshotRowLimit": { "type": "integer", "minimum": 0, "default": 50 },
+        "mergeStrategy": { "type": "string", "enum": ["skip", "merge", "overwrite", "force"], "default": "skip" },
+        "includeFullParseReport": { "type": "boolean", "default": false },
+        "strictValidation": { "type": "boolean", "default": false },
+        "autoCorrect": { "type": "boolean", "default": true },
+        "preserveCustomFields": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false,
+      "description": "Parser and import options."
+    },
+    "uploadId": {
+      "type": "string",
+      "description": "Optional client-provided idempotency key for retry-safe uploads."
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}

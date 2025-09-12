@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Upload CSV Response",
+  "type": "object",
+  "description": "Standard response returned after processing an upload request.",
+  "properties": {
+    "uploadId": { "type": "string", "description": "Server-assigned or client-provided upload id." },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "processed": { "type": "integer" },
+        "added": { "type": "integer" },
+        "updated": { "type": "integer" },
+        "skipped": { "type": "integer" },
+        "errors": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["processed", "added", "updated", "skipped"],
+      "description": "High-level import summary." 
+    },
+    "detailsPerFile": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string" },
+          "size": { "type": "integer" },
+          "processed": { "type": "integer" },
+          "added": { "type": "integer" },
+          "updated": { "type": "integer" },
+          "skipped": { "type": "integer" },
+          "errors": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["filename", "processed"]
+      },
+      "description": "Per-file import details and per-row errors/warnings when available."
+    },
+    "lastParseSnapshot": {
+      "type": "object",
+      "description": "Optional parse snapshot (compact or full). Shape is implementation-defined; consumers should treat as opaque JSON unless using the documented parse-report contract."
+    }
+  },
+  "required": ["uploadId", "summary"],
+  "additionalProperties": true
+}

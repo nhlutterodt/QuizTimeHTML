@@ -36,7 +36,19 @@ export class EnhancedCSVManager {
       // consumers to supply small header translation maps without modifying
       // the source CSV.
       if (headersMap && typeof headersMap === 'object') {
-        headers = headers.map(h => headersMap[h] || h);
+        // Build a normalized headersMap so callers can pass keys with
+        // irregular whitespace/casing. We prefer normalized lookup but
+        // fall back to the original exact key when necessary.
+        const normalizedMap = {};
+        Object.entries(headersMap).forEach(([k, v]) => {
+          const nk = QuestionSchema.normalizeFieldName(String(k));
+          normalizedMap[nk] = v;
+        });
+
+        headers = headers.map(h => {
+          const norm = QuestionSchema.normalizeFieldName(String(h));
+          return normalizedMap[norm] || headersMap[h] || headersMap[String(h).trim()] || h;
+        });
       }
       console.log(`📊 Parsed CSV: ${headers.length} columns, ${rows.length} rows`);
 
@@ -259,8 +271,8 @@ export class EnhancedCSVManager {
           preserveCustomFields
         });
 
-        // Validate question
-        const validation = QuestionSchema.validate(question);
+  // Validate question (allow missing id for import-time validation)
+  const validation = QuestionSchema.validate(question, { requireId: false });
         
         if (!validation.isValid) {
           if (strictValidation) {
