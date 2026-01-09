@@ -68,6 +68,9 @@ export class APIService {
       autoCorrect: options.autoCorrect !== false
     }));
 
+    const uploadId = options.uploadId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `upload_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+    formData.append('uploadId', uploadId);
+
     // Optional preset and headersMap
     if (options.preset) formData.append('preset', options.preset);
     if (options.headersMap) formData.append('headersMap', JSON.stringify(options.headersMap));
@@ -87,7 +90,8 @@ export class APIService {
         );
       }
 
-      return await response.json();
+      const json = await response.json();
+      return { ...json, uploadId };
     } catch (error) {
       console.error('Multi-CSV upload failed:', error);
       throw error;

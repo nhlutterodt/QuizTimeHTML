@@ -13,6 +13,11 @@ const tests = [
   , path.join(__dirname, '..', 'tests', 'uploadProcessor.edge.emptyfile.test.cjs')
   , path.join(__dirname, '..', 'tests', 'uploadProcessor.edge.malformed.test.cjs')
   , path.join(__dirname, '..', 'tests', 'uploadProcessor.edge.duplicateheaders.test.cjs')
+  , path.join(__dirname, '..', 'tests', 'integratedManager.import.test.cjs')
+  , path.join(__dirname, '..', 'tests', 'upload.idempotency.test.cjs')
+  , path.join(__dirname, '..', 'tests', 'upload.authlimit.test.cjs')
+  , path.join(__dirname, '..', 'tests', 'upload.rotation.test.cjs')
+  , path.join(__dirname, '..', 'tests', 'observability.metrics.test.cjs')
 ];
 
 let failed = 0;

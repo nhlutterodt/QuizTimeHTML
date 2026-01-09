@@ -820,7 +820,8 @@ export class ConfigurationPanel {
         mergeStrategy: document.getElementById('mergeStrategy').value,
         strictness: document.getElementById('uploadStrictness').value,
         owner: 'user', // TODO: get from user context
-        tags: []
+        tags: [],
+        uploadId: this.generateUploadId()
       };
       // Include optional preset and headersMap if provided
       try {
@@ -874,6 +875,13 @@ export class ConfigurationPanel {
         this.notifications.showError(`Question bank upload failed: ${error.message}`);
       }
     }
+  }
+
+  generateUploadId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return `ui_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   }
 
   /**

@@ -6,12 +6,43 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const UploadIdempotencyService = require('./src/services/UploadIdempotencyService.cjs');
+const { createApiKeyGuard, createRateLimiter, enforceRowLimit, enforceTotalSize } = require('./src/services/uploadGuards.cjs');
+const {
+  logEvent,
+  getMetricsSnapshot,
+  recordUploadSuccess,
+  recordUploadFailure,
+  recordUploadReuse,
+  recordParseReportDownload,
+  recordAuthFailure,
+  recordRateLimited,
+  recordCleanupRun
+} = require('./src/services/observability.cjs');
+let integratedManager = null;
+let idempotencyService = null;
 
 const app = express();
 
 const USER_DATA_FILE = path.join(__dirname, 'user_data.json');
 const QUESTION_BANK_FILE = path.join(__dirname, 'data', 'question_bank.json');
 const BACKUPS_DIR = path.join(__dirname, 'data', 'backups');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const UPLOAD_API_KEY = process.env.UPLOAD_API_KEY || null;
+const PARSE_REPORT_API_KEY = process.env.PARSE_REPORT_API_KEY || UPLOAD_API_KEY;
+const UPLOAD_RATE_LIMIT_MAX = Number(process.env.UPLOAD_RATE_LIMIT_MAX || 20);
+const UPLOAD_RATE_LIMIT_WINDOW_MS = Number(process.env.UPLOAD_RATE_LIMIT_WINDOW_MS || 5 * 60 * 1000);
+const REPORT_RATE_LIMIT_MAX = Number(process.env.REPORT_RATE_LIMIT_MAX || 30);
+const REPORT_RATE_LIMIT_WINDOW_MS = Number(process.env.REPORT_RATE_LIMIT_WINDOW_MS || 5 * 60 * 1000);
+const UPLOAD_ROW_LIMIT = Number(process.env.UPLOAD_ROW_LIMIT || 5000);
+const UPLOAD_MAX_TOTAL_MB = Number(process.env.UPLOAD_MAX_TOTAL_MB || 25);
+const UPLOAD_MAX_TOTAL_BYTES = UPLOAD_MAX_TOTAL_MB * 1024 * 1024;
+const AUDIT_MAX_MB = Number(process.env.AUDIT_MAX_MB || 5);
+const AUDIT_MAX_BYTES = AUDIT_MAX_MB * 1024 * 1024;
+const IDEMPOTENCY_MAX_RECORDS = Number(process.env.IDEMPOTENCY_MAX_RECORDS || 2000);
+const TEMP_RETENTION_DAYS = Number(process.env.TEMP_RETENTION_DAYS || 7);
+const TEMP_CLEAN_INTERVAL_MS = Number(process.env.TEMP_CLEAN_INTERVAL_MS || 6 * 60 * 60 * 1000);
+const REQUEST_LOG_ENABLED = process.env.REQUEST_LOG_ENABLED !== 'false';
 
 let userData = { users: [], sessions: [], responses: [] };
 let questionBank = { questions: [], uploads: [], metadata: {} };
@@ -21,6 +52,49 @@ async function saveUserData() { try { await fs.writeFile(USER_DATA_FILE, JSON.st
 async function loadQuestionBank() { try { const data = await fs.readFile(QUESTION_BANK_FILE, 'utf8'); questionBank = JSON.parse(data); } catch (e) { await saveQuestionBank(); } }
 async function saveQuestionBank() { questionBank.metadata.lastUpdated = new Date().toISOString(); questionBank.metadata.totalQuestions = questionBank.questions.length; await fs.writeFile(QUESTION_BANK_FILE, JSON.stringify(questionBank, null, 2)); }
 async function createBackup() { try { const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); const backupFile = path.join(BACKUPS_DIR, `question_bank_${timestamp}.json`); await fs.writeFile(backupFile, JSON.stringify(questionBank, null, 2)); return backupFile; } catch (e) { console.error('createBackup failed', e); } }
+
+async function ensureUploadsDir() {
+  try { await fs.mkdir(UPLOADS_DIR, { recursive: true }); } catch (e) { console.error('ensureUploadsDir failed', e); }
+}
+
+async function cleanupUploadedFiles(files = []) {
+  for (const f of files) {
+    try { await fs.unlink(f.path); } catch (e) { /* best-effort cleanup */ }
+  }
+}
+
+async function cleanupStaleUploads(retentionMs) {
+  if (!Number.isFinite(retentionMs) || retentionMs <= 0) return;
+  let deleted = 0;
+  try {
+    const entries = await fs.readdir(UPLOADS_DIR, { withFileTypes: true });
+    const cutoff = Date.now() - retentionMs;
+    for (const entry of entries) {
+      if (entry.isDirectory()) continue;
+      if (['idempotency.json', 'audit.log', 'audit.log.bak'].includes(entry.name)) continue;
+      const fullPath = path.join(UPLOADS_DIR, entry.name);
+      try {
+        const stat = await fs.stat(fullPath);
+        if (stat.mtimeMs < cutoff) {
+          await fs.unlink(fullPath);
+          deleted += 1;
+        }
+      } catch (e) {
+        /* ignore per-file errors */
+      }
+    }
+    recordCleanupRun(deleted, { retentionMs });
+    if (REQUEST_LOG_ENABLED && deleted) {
+      logEvent('uploads_cleanup', { deletedFiles: deleted, retentionMs });
+    }
+  } catch (e) {
+    if (REQUEST_LOG_ENABLED) logEvent('uploads_cleanup_error', { error: e.message });
+  }
+}
+
+function hashContent(content) {
+  return crypto.createHash('sha256').update(content).digest('hex');
+}
 
 // Simple CSV parser (small, not full CSV spec)
 function parseCSVLine(line) { const result = []; let cur=''; let inQ=false; for (let i=0;i<line.length;i++){const ch=line[i]; if(ch==='"') inQ=!inQ; else if(ch===',' && !inQ){ result.push(cur.trim().replace(/^"|"$/g,'')); cur=''; } else cur+=ch;} result.push(cur.trim().replace(/^"|"$/g,'')); return result; }
@@ -32,7 +106,29 @@ function findDuplicate(newQ, existing){ if(newQ.id){ const m=existing.find(q=>q.
 
 function applyMergeStrategy(newQ, existingQ, strategy){ switch(strategy){ case 'skip': return null; case 'overwrite': return {...newQ, source: existingQ.source}; case 'force': { const maxId = Math.max(0, ...questionBank.questions.map(q=>q.id||0)); return {...newQ, id: maxId+1}; } case 'merge': return {...existingQ, ...Object.fromEntries(Object.entries(newQ).filter(([k,v])=>v!=='' && v!=null && k!=='source')), source: existingQ.source}; default: return null; } }
 
-const upload = multer({ dest: 'uploads/', limits: { fileSize: 10 * 1024 * 1024, files: 5 } });
+function getActorMeta(req) {
+  return {
+    userId: req.header('x-user-id') || 'anonymous',
+    sessionId: req.header('x-session-id') || 'anonymous'
+  };
+}
+
+app.use((req, res, next) => {
+  req.requestId = req.header('x-request-id') || crypto.randomUUID();
+  res.setHeader('x-request-id', req.requestId);
+  req.actor = getActorMeta(req);
+  req._startAt = Date.now();
+  if (REQUEST_LOG_ENABLED) {
+    logEvent('request_received', { requestId: req.requestId, method: req.method, path: req.originalUrl, ...req.actor });
+  }
+  next();
+});
+
+const upload = multer({ dest: UPLOADS_DIR, limits: { fileSize: 10 * 1024 * 1024, files: 5 } });
+const uploadAuthGuard = createApiKeyGuard(UPLOAD_API_KEY, { onFailure: (req) => recordAuthFailure('upload', { requestId: req.requestId, ...req.actor }) });
+const uploadRateLimiter = createRateLimiter({ windowMs: UPLOAD_RATE_LIMIT_WINDOW_MS, maxRequests: UPLOAD_RATE_LIMIT_MAX, namespace: 'upload', onLimit: (req) => recordRateLimited('upload', { requestId: req.requestId, ...req.actor }) });
+const reportAuthGuard = createApiKeyGuard(PARSE_REPORT_API_KEY, { onFailure: (req) => recordAuthFailure('report', { requestId: req.requestId, ...req.actor }) });
+const reportRateLimiter = createRateLimiter({ windowMs: REPORT_RATE_LIMIT_WINDOW_MS, maxRequests: REPORT_RATE_LIMIT_MAX, namespace: 'parse-report', onLimit: (req) => recordRateLimited('report', { requestId: req.requestId, ...req.actor }) });
 const uploadProcessor = require('./src/services/uploadProcessor');
 
 app.get('/api/question-bank/stats', (req,res)=>{ res.json({ totalQuestions: questionBank.questions.length, totalUploads: questionBank.uploads.length }); });
@@ -328,6 +424,7 @@ app.post('/api/assess', async (req, res) => {
       userData.responses.push(responseData);
       await saveUserData();
       
+      await ensureUploadsDir();
       return res.json({ 
         assessment: mockAssessment,
         practiceMode: true,
@@ -421,12 +518,23 @@ app.post('/api/assess', async (req, res) => {
 });
 
 // Multi-CSV Upload Endpoint
-app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
+app.post('/api/upload-csvs', uploadRateLimiter, uploadAuthGuard, upload.array('files', 5), async (req, res) => {
   console.log('📁 Multi-CSV upload request (orchestrated) received');
+  const startedAt = Date.now();
+  const requestId = req.requestId;
+  const actor = req.actor;
 
   try {
     const files = req.files || [];
+    enforceTotalSize(files, UPLOAD_MAX_TOTAL_BYTES);
     const options = JSON.parse(req.body.options || '{}');
+
+    if (REQUEST_LOG_ENABLED) {
+      const totalBytes = files.reduce((sum, f) => sum + (f?.size || 0), 0);
+      logEvent('upload_received', { requestId, files: files.length, totalBytes, ...actor });
+    }
+
+    if (req.body.uploadId) options.uploadId = options.uploadId || req.body.uploadId;
 
     // support top-level fallback fields
     if (req.body.preset) options.preset = options.preset || req.body.preset;
@@ -435,37 +543,119 @@ app.post('/api/upload-csvs', upload.array('files', 5), async (req, res) => {
     }
 
     if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
+    if (!integratedManager) {
+      return res.status(500).json({ error: 'IntegratedQuestionManager not initialized on server' });
+    }
 
-    // Prepare context for uploadProcessor
-    const context = {
-      parseCSVContent,
-      convertToQuestionFormat,
-      questionBank,
-      saveQuestionBank,
-      createBackup,
-      findDuplicate,
-      applyMergeStrategy
-    };
+    const uploadId = options.uploadId || `upload_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const existingRecord = idempotencyService?.get(uploadId);
 
-    const result = await uploadProcessor.orchestrateUpload(files, options, context);
+    if (existingRecord && existingRecord.status === 'completed') {
+      await cleanupUploadedFiles(files);
+      const cached = { ...(existingRecord.response || {}), uploadId, idempotent: true };
+      await idempotencyService?.recordReuse({ uploadId, response: cached, actor });
+      recordUploadReuse({ requestId, uploadId, idempotent: true, ...actor });
+      return res.json(cached);
+    }
 
-    res.json({
-      uploadId: result.uploadId,
-      summary: result.summary,
-      detailsPerFile: result.detailsPerFile,
+    await idempotencyService?.recordStart({
+      uploadId,
+      options,
+      files: files.map(f => ({ name: f.originalname, size: f.size })),
+      actor
+    });
+
+    const detailsPerFile = [];
+    const summary = { processed: 0, added: 0, updated: 0, skipped: 0, errors: [] };
+
+    for (const file of files) {
+      const csvContent = await fs.readFile(file.path, 'utf8');
+      enforceRowLimit(csvContent, UPLOAD_ROW_LIMIT);
+      try {
+        const result = await integratedManager.importFromCSV(csvContent, {
+          mergeStrategy: options.mergeStrategy || 'skip',
+          strictValidation: options.strictness === 'strict',
+          autoCorrect: options.autoCorrect !== false,
+          preserveCustomFields: true,
+          snapshotRowLimit: options.snapshotRowLimit || 50,
+          preset: options.preset || null,
+          headersMap: options.headersMap || null,
+          uploadId
+        });
+
+        const fileDetail = {
+          filename: file.originalname,
+          size: file.size,
+          processed: result.summary?.processed ?? result.parseStats?.total ?? 0,
+          added: result.summary?.added ?? 0,
+          updated: result.summary?.updated ?? 0,
+          skipped: result.summary?.skipped ?? 0,
+          errors: (result.summary?.errors || []).map(e => e.error || e),
+          hash: hashContent(csvContent)
+        };
+
+        detailsPerFile.push(fileDetail);
+        summary.processed += fileDetail.processed;
+        summary.added += fileDetail.added;
+        summary.updated += fileDetail.updated;
+        summary.skipped += fileDetail.skipped;
+        summary.errors.push(...fileDetail.errors);
+      } finally {
+        try { await fs.unlink(file.path); } catch (e) { /* best-effort cleanup */ }
+      }
+    }
+
+    // sync global questionBank with integrated manager state for downstream endpoints
+    questionBank.questions = integratedManager.getAllQuestions();
+    questionBank.metadata = integratedManager.metadata || {};
+    if (!questionBank.uploads) questionBank.uploads = [];
+    questionBank.uploads.push({ uploadId, timestamp: new Date().toISOString(), filesCount: files.length, options, summary });
+    await saveQuestionBank();
+
+    const responsePayload = {
+      uploadId,
+      summary,
+      detailsPerFile,
       questionBankStats: {
         totalQuestions: questionBank.questions.length,
         totalUploads: questionBank.uploads.length
-      }
+      },
+      idempotent: false
+    };
+
+    await idempotencyService?.recordSuccess({
+      uploadId,
+      response: responsePayload,
+      options,
+      files: detailsPerFile,
+      actor
     });
+
+    recordUploadSuccess({
+      requestId,
+      uploadId,
+      durationMs: Date.now() - startedAt,
+      processed: summary.processed,
+      added: summary.added,
+      errors: summary.errors.length,
+      idempotent: false,
+      ...actor
+    });
+
+    res.json(responsePayload);
 
   } catch (error) {
     console.error('❌ Upload orchestration failed:', error);
+    recordUploadFailure({ requestId, error: error?.message || String(error), ...actor });
     // cleanup
     if (req.files) {
-      for (const f of req.files) {
-        try { await fs.unlink(f.path); } catch (e) { /* best-effort cleanup */ }
-      }
+      await cleanupUploadedFiles(req.files);
+    }
+    if (idempotencyService && req?.body) {
+      let parsedOptions = {};
+      try { parsedOptions = JSON.parse(req.body.options || '{}'); } catch (e) { parsedOptions = {}; }
+      const uploadId = req.body.uploadId || parsedOptions.uploadId || 'unknown';
+      await idempotencyService.recordFailure({ uploadId, error, actor });
     }
     res.status(500).json({ error: 'Upload processing failed', message: error.message });
   }
@@ -997,15 +1187,50 @@ app.get('/api/diagnostics', (req, res) => {
   });
 });
 
+// Lightweight metrics snapshot (guarded by upload API key)
+app.get('/ops/metrics', uploadAuthGuard, (req, res) => {
+  res.json({
+    metrics: getMetricsSnapshot(),
+    uptimeMs: Math.round(process.uptime() * 1000)
+  });
+});
+
 // Initialize server
 async function startServer() {
   await loadUserData();
   await loadQuestionBank();
+  await ensureUploadsDir();
+
+  const retentionMs = Math.max(0, TEMP_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  if (retentionMs && TEMP_CLEAN_INTERVAL_MS > 0) {
+    cleanupStaleUploads(retentionMs).catch(() => {});
+    const timer = setInterval(() => cleanupStaleUploads(retentionMs), TEMP_CLEAN_INTERVAL_MS);
+    timer.unref?.();
+    if (REQUEST_LOG_ENABLED) {
+      logEvent('uploads_cleanup_scheduled', { retentionMs, intervalMs: TEMP_CLEAN_INTERVAL_MS });
+    }
+  }
+
+  try {
+    idempotencyService = new UploadIdempotencyService(UPLOADS_DIR, {
+      maxAuditBytes: AUDIT_MAX_BYTES,
+      maxRecords: IDEMPOTENCY_MAX_RECORDS
+    });
+    await idempotencyService.init();
+    console.log('🧊 Idempotency service initialized');
+  } catch (e) {
+    console.warn('⚠️ Failed to initialize idempotency service:', e?.message || e);
+    idempotencyService = null;
+  }
   // Initialize IntegratedQuestionManager for server-side operations (dynamic import for ESM module)
   try {
     const mod = await import('./src/services/IntegratedQuestionManager.js');
     const IntegratedQuestionManager = mod.default || mod.IntegratedQuestionManager;
     integratedManager = new IntegratedQuestionManager();
+    await integratedManager.initialize(questionBank);
+    // keep questionBank in sync with manager state
+    questionBank.questions = integratedManager.getAllQuestions();
+    questionBank.metadata = integratedManager.metadata || {};
     console.log('🧩 IntegratedQuestionManager initialized');
   } catch (e) {
     console.warn('⚠️ Failed to initialize IntegratedQuestionManager:', e?.message || e);
@@ -1024,7 +1249,10 @@ async function startServer() {
 }
 
 // Endpoint to download the last parse report generated by the IntegratedQuestionManager
-app.get('/api/parse-report/download', async (req, res) => {
+app.get('/api/parse-report/download', reportRateLimiter, reportAuthGuard, async (req, res) => {
+  const requestId = req.requestId;
+  const startedAt = Date.now();
+  const actor = req.actor;
   try {
     if (!integratedManager) {
       return res.status(500).json({ error: 'IntegratedQuestionManager not initialized on server' });
@@ -1033,6 +1261,10 @@ app.get('/api/parse-report/download', async (req, res) => {
     // Optionally accept filename override
     const filename = req.query.filename;
     const exportResult = await integratedManager.exportLastParseReport({ filename });
+
+    if (REQUEST_LOG_ENABLED) {
+      logEvent('parse_report_request', { requestId, filename: exportResult?.filename || 'latest', ...actor });
+    }
 
     if (!exportResult) {
       return res.status(404).json({ error: 'No parse report available' });
@@ -1064,22 +1296,26 @@ app.get('/api/parse-report/download', async (req, res) => {
 
       // Pipe stream to response
       readStream.pipe(res);
+      recordParseReportDownload({ requestId, durationMs: Date.now() - startedAt, streamed: true, ...actor });
       return;
     }
 
     if (exportResult.type === 'raw') {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename=${exportResult.filename}`);
+      recordParseReportDownload({ requestId, durationMs: Date.now() - startedAt, streamed: false, ...actor });
       return res.send(exportResult.content);
     }
 
     // Browser blob case shouldn't occur on server, fallback to raw
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename=${exportResult.filename}`);
+    recordParseReportDownload({ requestId, durationMs: Date.now() - startedAt, streamed: false, ...actor });
     return res.send(exportResult.content || '{}');
 
   } catch (error) {
     console.error('❌ Parse report download failed:', error);
+    recordUploadFailure({ requestId, error: error?.message || String(error), scope: 'parse-report', ...actor });
     res.status(500).json({ error: 'Failed to export parse report', message: error.message });
   }
 });
