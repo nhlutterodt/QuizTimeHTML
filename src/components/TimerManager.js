@@ -62,6 +62,9 @@ export class TimerManager extends EventTarget {
       case 'question':
         this.startQuestionTimer();
         break;
+      case 'hybrid':
+        this.startHybridTimer();
+        break;
       default:
         // No timer mode
         break;
@@ -129,6 +132,14 @@ export class TimerManager extends EventTarget {
     this.dispatchEvent(new CustomEvent('timerReset', {
       detail: { timeRemaining: this.timeRemaining }
     }));
+  }
+
+  /**
+   * Start hybrid timer (Exam + Question)
+   */
+  startHybridTimer() {
+    this.startExamTimer();
+    this.startQuestionTimer();
   }
 
   /**
@@ -201,7 +212,7 @@ export class TimerManager extends EventTarget {
    */
   startQuestionTimer() {
     if (this.timeRemaining.question <= 0) {
-      this.nextQuestion();
+      this.timeExpired('question');
       return;
     }
 
@@ -217,7 +228,7 @@ export class TimerManager extends EventTarget {
       }));
 
       if (this.timeRemaining.question <= 0) {
-        this.nextQuestion();
+        this.timeExpired('question');
       } else if (this.timeRemaining.question <= 30) { // 30 seconds warning
         this.dispatchEvent(new CustomEvent('timerWarning', {
           detail: { 
@@ -293,7 +304,7 @@ export class TimerManager extends EventTarget {
     this.clearInterval('question');
     this.timeRemaining.question = this.config.questionTime;
     
-    if (this.config.timerMode === 'question' && this.isActive && !this.isPaused) {
+    if (['question', 'hybrid'].includes(this.config.timerMode) && this.isActive && !this.isPaused) {
       this.startQuestionTimer();
     }
   }

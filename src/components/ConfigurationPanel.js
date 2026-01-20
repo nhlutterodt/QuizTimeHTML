@@ -6,10 +6,11 @@ import QuestionSupplementManager from '../services/QuestionSupplementManager.js'
 import SupplementationDialog from './SupplementationDialog.js';
 
 export class ConfigurationPanel {
-  constructor(container, storageService, apiService, notifications) {
+  constructor(container, storageService, apiService, questionService, notifications) {
     this.container = container;
     this.storageService = storageService;
     this.apiService = apiService;
+    this.questionService = questionService; // For robust CSV parsing
     this.notifications = notifications;
     this.eventManager = new EventManager();
     this.config = {};
@@ -173,6 +174,7 @@ export class ConfigurationPanel {
                 <option value="exam">Exam Timer (Overall)</option>
                 <option value="section">Section Timer</option>
                 <option value="question">Question Timer</option>
+                <option value="hybrid">Hybrid (Exam & Question Limits)</option>
               </select>
             </div>
             
@@ -217,6 +219,22 @@ export class ConfigurationPanel {
               <label class="checkbox-label">
                 <input type="checkbox" id="showCorrectAnswers" data-element-id="config-checkbox-show-answers"> Show Correct Answers in Results
               </label>
+            </div>
+            
+            <div class="form-group">
+              <label for="feedbackMode">Feedback Mode:</label>
+              <select id="feedbackMode" class="form-control" data-element-id="config-select-feedback-mode">
+                <option value="delayed">Delayed (End of Exam)</option>
+                <option value="immediate">Immediate (After Answer)</option>
+                <option value="manual">Manual (Check Answer Button)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="allowRetriesGroup">
+              <label class="checkbox-label">
+                <input type="checkbox" id="allowRetries" data-element-id="config-checkbox-allow-retries"> Allow Retries after Feedback
+              </label>
+              <small class="help-text">If unchecked, answer is locked after immediate feedback.</small>
             </div>
           </div>
 
@@ -269,6 +287,26 @@ export class ConfigurationPanel {
     document.getElementById('passingScore').value = this.config.passingScore;
     document.getElementById('randomize').checked = this.config.randomize;
     document.getElementById('showCorrectAnswers').checked = this.config.showCorrectAnswers;
+    document.getElementById('feedbackMode').value = this.config.feedbackMode || 'delayed';
+    document.getElementById('allowRetries').checked = this.config.allowRetries || false;
+    
+    // Trigger visibility update
+    this.updateFeedbackSettings();
+  }
+
+  /**
+   * Update feedback settings visibility
+   */
+  updateFeedbackSettings() {
+    const feedbackMode = document.getElementById('feedbackMode').value;
+    const allowRetriesGroup = document.getElementById('allowRetriesGroup');
+    
+    // Only show retries option for immediate mode
+    if (feedbackMode === 'immediate') {
+        DOMHelpers.toggleVisibility(allowRetriesGroup, true);
+    } else {
+        DOMHelpers.toggleVisibility(allowRetriesGroup, false);
+    }
   }
 
   /**
@@ -284,6 +322,7 @@ export class ConfigurationPanel {
     const clearFiles = document.getElementById('clearFiles');
     const uploadFiles = document.getElementById('uploadFiles');
     const timerMode = document.getElementById('timerMode');
+    const feedbackMode = document.getElementById('feedbackMode');
     const closeBtn = document.getElementById('closeConfig');
     const resetBtn = document.getElementById('resetConfig');
     const saveBtn = document.getElementById('saveConfig');
@@ -331,6 +370,11 @@ export class ConfigurationPanel {
 
     // Timer mode change
     this.eventManager.on(timerMode, 'change', () => this.updateTimerSettings());
+
+    // Feedback settings
+    if (feedbackMode) {
+        this.eventManager.on(feedbackMode, 'change', () => this.updateFeedbackSettings());
+    }
 
     // Button events
     this.eventManager.on(closeBtn, 'click', () => this.hide());
@@ -451,9 +495,25 @@ export class ConfigurationPanel {
       statusElement.textContent = 'Processing CSV file...';
       statusElement.className = 'status-message info';
 
-      // Read and parse CSV
+      // Read CSV text
       const csvText = await this.readFileAsText(file);
-      const csvData = await this.parseCSV(csvText);
+      
+      // Use robust parser from QuestionService manager
+      let csvData = [];
+      if (this.questionService.questionManager && this.questionService.questionManager.csvManager) {
+        const parseResult = await this.questionService.questionManager.csvManager.parseCSV(csvText, {
+          strictValidation: false,
+          autoCorrect: true
+        });
+        csvData = parseResult.questions;
+        
+        // Show warnings if any
+        if (parseResult.warnings.length > 0) {
+          console.warn(`CSV warnings: ${parseResult.warnings.length} issues found`);
+        }
+      } else {
+        throw new Error('CSV parsing service unavailable');
+      }
 
       // Validate CSV data
       const validation = ValidationHelpers.validateCSVData(csvData);
@@ -640,62 +700,59 @@ export class ConfigurationPanel {
     };
     
     try {
-      // Read and parse CSV
-      const csvText = await this.readFileAsText(file);
-      const lines = csvText.trim().split('\n');
+      const text = await this.readFileAsText(file);
       
-      if (lines.length === 0) {
-        fileInfo.status = 'error';
-        fileInfo.errors.push('Empty file');
-        return fileInfo;
-      }
-      
-      // Check row count limit
-      if (lines.length - 1 > limits.maxRowsPerFile) {
-        fileInfo.status = 'error';
-        fileInfo.errors.push(`Too many rows: ${lines.length - 1} (max ${limits.maxRowsPerFile})`);
-        return fileInfo;
-      }
-      
-      // Parse headers
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-      const requiredHeaders = ['question'];
-      const missingHeaders = requiredHeaders.filter(h => 
-        !headers.some(header => header.toLowerCase().includes(h.toLowerCase()))
-      );
-      
-      if (missingHeaders.length > 0) {
-        fileInfo.status = 'error';
-        fileInfo.errors.push(`Missing required headers: ${missingHeaders.join(', ')}`);
-        return fileInfo;
-      }
-      
-      // Preview first 5 rows
-      fileInfo.headers = headers;
-      fileInfo.rowCount = lines.length - 1;
-      
-      let validCount = 0;
-      for (let i = 1; i <= Math.min(6, lines.length - 1); i++) {
-        const row = this.parseCSVRow(lines[i]);
-        if (row.length === headers.length) {
-          validCount++;
-          if (i <= 5) {
-            const rowObj = {};
-            headers.forEach((header, idx) => {
-              rowObj[header] = row[idx];
-            });
-            fileInfo.preview.push(rowObj);
-          }
+      // Use the robust parser from QuestionService's manager
+      if (this.questionService.questionManager && this.questionService.questionManager.csvManager) {
+        const parseResult = await this.questionService.questionManager.csvManager.parseCSV(text, {
+          strictValidation: false,
+          autoCorrect: true,
+          snapshotRowLimit: limits.maxRowsPerFile
+        });
+        
+        // Map robust result to UI format
+        fileInfo.rowCount = parseResult.summary.total;
+        fileInfo.validRows = parseResult.summary.successful;
+        fileInfo.status = parseResult.summary.errors > 0 ? 'error' : 
+                          (parseResult.summary.warnings > 0 ? 'warning' : 'valid');
+        
+        // Map errors
+        fileInfo.errors = parseResult.errors.map(e => `Line ${e.line}: ${e.error}`);
+        
+        // Map warnings (Flags) - KEY for metadata flagging
+        parseResult.warnings.forEach(w => {
+          fileInfo.errors.push(`[Warning] Line ${w.line}: ${w.warning}`);
+        });
+
+        // Create preview data from snapshot
+        if (parseResult.lastParseSnapshot) {
+          const headers = parseResult.lastParseSnapshot.headers;
+          fileInfo.headers = headers;
+          
+          // Get first 5 questions for preview
+          const previewQuestions = parseResult.questions.slice(0, 5);
+          fileInfo.preview = previewQuestions.map(q => {
+            const obj = {};
+            obj['Question'] = q.question?.substring(0, 50) + (q.question?.length > 50 ? '...' : '') || '';
+            obj['Difficulty'] = q.difficulty || '[Missing]';
+            obj['Category'] = q.category || '[Missing]';
+            obj['Answer'] = q.correct_answer || '';
+            return obj;
+          });
         }
-      }
-      
-      fileInfo.validRows = validCount;
-      fileInfo.status = validCount > 0 ? 'valid' : 'warning';
-      
-      if (validCount === 0) {
-        fileInfo.errors.push('No valid data rows found');
-      } else if (validCount < Math.min(5, fileInfo.rowCount)) {
-        fileInfo.errors.push('Some rows have parsing issues');
+
+        // Check row limits
+        if (fileInfo.rowCount === 0) {
+          fileInfo.status = 'error';
+          fileInfo.errors.push('File is empty or contains no valid data rows');
+        } else if (fileInfo.rowCount > limits.maxRowsPerFile) {
+          fileInfo.status = 'error';
+          fileInfo.errors.push(`Row count (${fileInfo.rowCount}) exceeds limit of ${limits.maxRowsPerFile}`);
+        }
+
+      } else {
+        // Fallback: manager not accessible
+        throw new Error('CSV Validation Service unavailable. Please refresh the page.');
       }
       
     } catch (error) {
@@ -704,31 +761,6 @@ export class ConfigurationPanel {
     }
     
     return fileInfo;
-  }
-
-  /**
-   * Parse CSV row handling quotes and commas
-   */
-  parseCSVRow(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    
-    result.push(current.trim());
-    return result;
   }
 
   /**
@@ -963,28 +995,7 @@ export class ConfigurationPanel {
   DOMHelpers.toggleVisibility(resultsSection, true);
   }
 
-  /**
-   * Parse CSV text to array of objects
-   */
-  async parseCSV(csvText) {
-    // Use the csv-manager.js if available, otherwise simple parsing
-    if (window.parseCSV) {
-      return window.parseCSV(csvText);
-    }
 
-    // Simple CSV parsing fallback
-    const lines = csvText.split('\n').filter(line => line.trim());
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-    
-    return lines.slice(1).map(line => {
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      const obj = {};
-      headers.forEach((header, index) => {
-        obj[header] = values[index] || '';
-      });
-      return obj;
-    });
-  }
 
   /**
    * Update section filter options
@@ -1027,6 +1038,10 @@ export class ConfigurationPanel {
       case 'question':
         DOMHelpers.toggleVisibility(questionGroup, true);
         break;
+      case 'hybrid':
+        DOMHelpers.toggleVisibility(examGroup, true);
+        DOMHelpers.toggleVisibility(questionGroup, true);
+        break;
     }
   }
 
@@ -1053,12 +1068,17 @@ export class ConfigurationPanel {
         questionTime: 2,
         numQuestions: 10,
         randomize: true,
+        randomize: true,
+        randomize: true,
         passingScore: 70,
-        showCorrectAnswers: true
+        showCorrectAnswers: true,
+        feedbackMode: 'delayed',
+        allowRetries: false
       };
       
       this.populateFormFields();
       this.updateTimerSettings();
+      this.updateFeedbackSettings();
       this.showStatus('csvStatus', 'Configuration reset to defaults', 'info');
     }
   }
@@ -1083,7 +1103,10 @@ export class ConfigurationPanel {
       numQuestions: parseInt(document.getElementById('numQuestions').value) || 10,
       passingScore: parseInt(document.getElementById('passingScore').value) || 70,
       randomize: document.getElementById('randomize').checked,
+      randomize: document.getElementById('randomize').checked,
       showCorrectAnswers: document.getElementById('showCorrectAnswers').checked,
+      feedbackMode: document.getElementById('feedbackMode').value,
+      allowRetries: document.getElementById('allowRetries').checked,
       section: document.getElementById('sectionFilter').value,
       difficulty: document.getElementById('difficultyFilter').value
     };

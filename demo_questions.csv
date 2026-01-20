@@ -1,7 +1,7 @@
-Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswer,Difficulty,Section
+question,option_a,option_b,option_c,option_d,correct_answer,difficulty,category
 What is the chemical symbol for Gold?,Ag,Au,Gd,Go,B,Easy,Science
 Which planet is known as the Red Planet?,Venus,Jupiter,Mars,Saturn,C,Easy,Science
-Who wrote "Romeo and Juliet"?,Charles Dickens,William Shakespeare,Jane Austen,Mark Twain,B,Easy,Literature
+"Who wrote ""Romeo and Juliet""?",Charles Dickens,William Shakespeare,Jane Austen,Mark Twain,B,Easy,Literature
 What is the capital of France?,London,Berlin,Madrid,Paris,D,Easy,Geography
 Which language is primarily used for Android app development?,Swift,Python,Java,C#,C,Medium,Technology
 What does HTML stand for?,Hyper Text Markup Language,High Tech Multi Level,Hyperlink Text Management Language,Home Tool Markup Language,A,Easy,Technology

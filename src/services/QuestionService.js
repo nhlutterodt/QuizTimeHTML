@@ -164,6 +164,63 @@ export class QuestionService {
   }
 
   /**
+   * Upload CSVs to question bank (Adapter for ConfigurationPanel)
+   * Wraps importMultipleCSVs to match the API expected by ConfigurationPanel
+   */
+  async uploadCSVsToQuestionBank(files, options = {}) {
+    // Read file contents
+    const csvFiles = await Promise.all(files.map(async file => {
+      const content = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error(`Failed to read file: ${file.name}`));
+        reader.readAsText(file);
+      });
+      
+      return {
+        filename: file.name,
+        content: content,
+        uploadId: options.uploadId,
+        owner: options.owner
+      };
+    }));
+
+    // Import using the manager
+    const importResults = await this.importMultipleCSVs(csvFiles, options);
+    
+    // Aggregating results for the UI
+    const summary = {
+      processed: 0,
+      added: 0,
+      updated: 0,
+      skipped: 0,
+      errors: 0
+    };
+    
+    importResults.forEach(res => {
+        if (res.parseStats) {
+            summary.processed += res.pathStats?.total || 0; // fallback if needed
+            summary.added += res.parseStats.successful || 0; // Note: this might need adjustment based on merge keys
+        }
+        // IntegratedQuestionManager returns a 'summary' object in its result
+        if (res.summary) {
+            summary.processed += res.summary.processed || 0;
+            summary.added += res.summary.added || 0;
+            summary.updated += res.summary.updated || 0;
+            summary.skipped += res.summary.skipped || 0;
+        }
+        if (res.error) {
+            summary.errors++;
+        }
+    });
+
+    return {
+        results: importResults,
+        summary: summary
+    };
+  }
+
+  /**
    * Group questions by section
    */
   groupQuestionsBySection() {
@@ -326,14 +383,24 @@ export class QuestionService {
 
     this.questions.forEach((question, index) => {
       const userAnswer = this.userAnswers[index];
-      const isCorrect = userAnswer === question.answer;
+      
+      // Calculate correct answer index (Schema uses correct_answer letter, legacy uses answer index)
+      let correctAnswerIndex = -1;
+      if (question.correct_answer) {
+          const letter = question.correct_answer.toString().toUpperCase();
+          correctAnswerIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(letter);
+      } else if (question.answer !== undefined) {
+          correctAnswerIndex = Number(question.answer);
+      }
+      
+      const isCorrect = userAnswer === correctAnswerIndex;
       
       if (isCorrect) {
         correct++;
       }
 
       // Track section results
-      const section = question.section || 'General';
+      const section = question.section || question.category || 'General';
       if (!sectionResults[section]) {
         sectionResults[section] = { correct: 0, total: 0 };
       }
@@ -350,13 +417,23 @@ export class QuestionService {
       total,
       percentage,
       sectionResults,
-      questions: this.questions.map((question, index) => ({
-        question: question.question,
-        userAnswer: this.userAnswers[index],
-        correctAnswer: question.answer,
-        isCorrect: this.userAnswers[index] === question.answer,
-        explanation: question.explanation
-      }))
+      questions: this.questions.map((question, index) => {
+        let correctAnswerIndex = -1;
+        if (question.correct_answer) {
+            correctAnswerIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(question.correct_answer.toString().toUpperCase());
+        } else if (question.answer !== undefined) {
+            correctAnswerIndex = Number(question.answer);
+        }
+          
+        return {
+            question: question.question,
+            userAnswer: this.userAnswers[index],
+            correctAnswer: question.correct_answer || question.answer, // Return original for display
+            correctAnswerIndex: correctAnswerIndex,
+            isCorrect: this.userAnswers[index] === correctAnswerIndex,
+            explanation: question.explanation
+        };
+      })
     };
   }
 

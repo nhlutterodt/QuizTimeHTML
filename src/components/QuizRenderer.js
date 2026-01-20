@@ -62,6 +62,7 @@ export class QuizRenderer {
           
           <div class="control-actions">
             <button id="clearAnswerBtn" class="action-link">Clear</button>
+            <button id="checkAnswerBtn" class="action-link hidden">Check Answer</button>
             <button id="flagQuestionBtn" class="action-link">Flag</button>
             <button id="submitQuizBtn" class="action-link">Submit</button>
           </div>
@@ -107,7 +108,10 @@ export class QuizRenderer {
     const flagBtn = DOMHelpers.getElementById('flagQuestionBtn');
     const submitBtn = DOMHelpers.getElementById('submitQuizBtn');
     
+    const checkBtn = DOMHelpers.getElementById('checkAnswerBtn');
+    
     if (clearBtn) this.eventManager.on(clearBtn, 'click', () => this.clearAnswer());
+    if (checkBtn) this.eventManager.on(checkBtn, 'click', () => this.checkAnswer());
     if (flagBtn) this.eventManager.on(flagBtn, 'click', () => this.flagQuestion());
     // submitBtn might not exist initially or might be optional
     if (submitBtn) this.eventManager.on(submitBtn, 'click', () => this.submitQuiz());
@@ -153,6 +157,17 @@ export class QuizRenderer {
 
     // Restore selected answer
     this.restoreSelectedAnswer();
+    
+    // Manage Check Answer button visibility
+    const checkBtn = DOMHelpers.getElementById('checkAnswerBtn');
+    if (checkBtn) {
+        if (this.config.feedbackMode === 'manual') {
+            DOMHelpers.toggleVisibility(checkBtn, true);
+            checkBtn.disabled = this.selectedAnswer === null;
+        } else {
+            DOMHelpers.toggleVisibility(checkBtn, false);
+        }
+    }
   }
 
   /**
@@ -250,10 +265,10 @@ export class QuizRenderer {
   selectAnswer(answerIndex) {
     if (this.isPaused) return;
 
-    // Remove previous selection
+    // Remove previous selection and feedback classes from ALL options
     const options = this.container.querySelectorAll('.answer-card');
     options.forEach(option => {
-      option.classList.remove('selected');
+      option.classList.remove('selected', 'correct', 'incorrect');
       option.setAttribute('aria-pressed', 'false');
     });
 
@@ -281,8 +296,30 @@ export class QuizRenderer {
       }
     }));
 
-    // Auto-advance if configured
-    if (this.config.autoAdvance && this.questionService.hasNextQuestion()) {
+    // Handle Feedback Modes
+    if (this.config.feedbackMode === 'immediate') {
+        this.showFeedback(answerIndex);
+        
+        // Handle Retries
+        if (!this.config.allowRetries) {
+            // Lock all options
+            const options = this.container.querySelectorAll('.answer-card');
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.classList.add('locked');
+            });
+        }
+        
+        // Delay auto-advance to allow reading feedback
+        if (this.config.autoAdvance && this.questionService.hasNextQuestion()) {
+            setTimeout(() => this.nextQuestion(), 2000); 
+        }
+    } else if (this.config.feedbackMode === 'manual') {
+        const checkBtn = DOMHelpers.getElementById('checkAnswerBtn');
+        if (checkBtn) checkBtn.disabled = false;
+        
+        // Standard auto-advance only if NOT manual (manual requires check)
+    } else if (this.config.autoAdvance && this.questionService.hasNextQuestion()) {
       setTimeout(() => this.nextQuestion(), 800);
     }
   }
@@ -300,7 +337,16 @@ export class QuizRenderer {
       option.setAttribute('aria-pressed', 'false');
       const input = option.querySelector('input[type="radio"]');
       if (input) input.checked = false;
+      option.classList.remove('correct', 'incorrect'); // Clear feedback
     });
+
+    // Hide hint
+    const hint = this.container.querySelector('.question-hint');
+    if (hint) DOMHelpers.toggleVisibility(hint, false);
+    
+    // Disable check button
+    const checkBtn = DOMHelpers.getElementById('checkAnswerBtn');
+    if (checkBtn) checkBtn.disabled = true;
 
     // Clear answer in service
     this.questionService.saveAnswer(null);
@@ -417,6 +463,52 @@ export class QuizRenderer {
         detail: { reason: 'submitted' }
       }));
     }
+  }
+
+  /**
+   * Show Feedback for selected answer
+   */
+  showFeedback(selectedIndex) {
+    const question = this.questionService.getCurrentQuestion();
+    if (!question) return;
+    
+    // Use correct_answer (letter) from schema
+    let correctIndex = -1;
+    if (question.correct_answer) {
+        const letter = question.correct_answer.toString().toUpperCase();
+        correctIndex = ['A', 'B', 'C', 'D', 'E', 'F'].indexOf(letter);
+    } else if (question.answer !== undefined) {
+        correctIndex = Number(question.answer);
+    }
+    
+    // Clear existing feedback first (redundant but safe)
+    const options = this.container.querySelectorAll('.answer-card');
+    options.forEach(option => option.classList.remove('correct', 'incorrect'));
+    
+    options.forEach((option, index) => {
+        // Mark correct answer
+        if (index === correctIndex) {
+            option.classList.add('correct');
+        }
+        // Mark selected incorrect answer
+        if (index === selectedIndex && index !== correctIndex) {
+            option.classList.add('incorrect');
+        }
+    });
+
+    // Show Explanation
+    const hint = this.container.querySelector('.question-hint');
+    if (hint) {
+        DOMHelpers.toggleVisibility(hint, true);
+    }
+  }
+
+  /**
+   * Check Answer (Manual Mode)
+   */
+  checkAnswer() {
+    if (this.selectedAnswer === null) return;
+    this.showFeedback(this.selectedAnswer);
   }
 
   /**

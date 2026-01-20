@@ -238,6 +238,7 @@ export class QuizApp {
       this.containers.configuration,
       this.storageService,
       this.apiService,
+      this.questionService, // Pass questionService for CSV parsing
       {
         showSuccess: (msg) => this.showSuccess(msg),
         showWarning: (msg) => this.showWarning(msg),
@@ -396,6 +397,11 @@ export class QuizApp {
     this.timerManager.addEventListener('examEnded', () => {
       this.endQuiz('timeout');
     });
+
+    // Timer UI Updates
+    this.timerManager.addEventListener('examTimerUpdate', (e) => this.updateTimerDisplay(e.detail, 'exam'));
+    this.timerManager.addEventListener('questionTimerUpdate', (e) => this.updateTimerDisplay(e.detail, 'question'));
+    this.timerManager.addEventListener('sectionTimerUpdate', (e) => this.updateTimerDisplay(e.detail, 'section'));
 
     // Quiz Renderer Events
     if (this.quizRenderer) {
@@ -624,7 +630,7 @@ export class QuizApp {
    */
   handleQuestionChanged(detail) {
     // Reset question timer if applicable
-    if (this.quizConfig.timerMode === 'question') {
+    if (['question', 'hybrid'].includes(this.quizConfig.timerMode)) {
       this.timerManager.resetQuestionTimer();
     }
     
@@ -783,6 +789,34 @@ export class QuizApp {
   hideLoading() {
     const overlay = DOMHelpers.getElementById('loadingOverlay');
     DOMHelpers.toggleVisibility(overlay, false);
+  }
+
+  /**
+   * Update timer display in header
+   */
+  updateTimerDisplay(detail, type) {
+    const timerContainer = this.containers.timer;
+    if (!timerContainer) return;
+
+    // Create spans if they don't exist
+    let examSpan = timerContainer.querySelector('.exam-time');
+    let questionSpan = timerContainer.querySelector('.question-time');
+    
+    if (!examSpan) {
+        timerContainer.innerHTML = ''; // Clear initial state
+        examSpan = DOMHelpers.createElement('span', { className: 'exam-time' });
+        questionSpan = DOMHelpers.createElement('span', { className: 'question-time' });
+        timerContainer.appendChild(examSpan);
+        timerContainer.appendChild(questionSpan);
+    }
+
+    if (type === 'exam') {
+        examSpan.textContent = `Exam: ${detail.formattedTime}`;
+    } else if (type === 'question') {
+        questionSpan.textContent = ` | Question: ${detail.formattedTime}`;
+    } else if (type === 'section') {
+        examSpan.textContent = `Section: ${detail.formattedTime}`;
+    }
   }
 
   /**
