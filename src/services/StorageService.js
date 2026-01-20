@@ -229,6 +229,20 @@ export class StorageService {
   }
 
   /**
+   * Get question bank data
+   */
+  getQuestionBank() {
+    return this.getLocal('question_bank', null);
+  }
+
+  /**
+   * Save question bank data
+   */
+  saveQuestionBank(data) {
+    return this.setLocal('question_bank', data);
+  }
+
+  /**
    * Get latest quiz result
    */
   getLatestResult() {

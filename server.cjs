@@ -47,6 +47,18 @@ const REQUEST_LOG_ENABLED = process.env.REQUEST_LOG_ENABLED !== 'false';
 let userData = { users: [], sessions: [], responses: [] };
 let questionBank = { questions: [], uploads: [], metadata: {} };
 
+// AI State Management
+let CURRENT_API_KEY = process.env.OPENAI_API_KEY || null;
+let CURRENT_PROVIDER = process.env.OPENAI_API_KEY ? 'openai' : null;
+let USE_AI = !!CURRENT_API_KEY;
+let AI_STATUS = {
+  available: !!CURRENT_API_KEY,
+  lastChecked: null,
+  error: null,
+  checking: false,
+  provider: CURRENT_PROVIDER
+};
+
 async function loadUserData() { try { const data = await fs.readFile(USER_DATA_FILE, 'utf8'); userData = JSON.parse(data); } catch (e) { await saveUserData(); } }
 async function saveUserData() { try { await fs.writeFile(USER_DATA_FILE, JSON.stringify(userData, null, 2)); } catch (e) { console.error('saveUserData failed', e); } }
 async function loadQuestionBank() { try { const data = await fs.readFile(QUESTION_BANK_FILE, 'utf8'); questionBank = JSON.parse(data); } catch (e) { await saveQuestionBank(); } }

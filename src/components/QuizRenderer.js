@@ -25,49 +25,60 @@ export class QuizRenderer {
   /**
    * Render the main quiz interface
    */
+  /**
+   * Render the main quiz interface with enhanced UI
+   */
   render() {
     this.container.innerHTML = `
       <div class="quiz-renderer">
-        <!-- Progress Bar -->
-        <div class="quiz-progress">
-          <div class="progress-bar">
+        <!-- Progress Header -->
+        <div class="quiz-header-card">
+          <div class="progress-info">
+            <span class="progress-text" id="progressText">Question 1 of ${this.questionService.getAllQuestions().length}</span>
+            <span class="timer-display" id="quizTimer"></span>
+          </div>
+          <div class="progress-bar-container">
             <div class="progress-fill" id="progressFill"></div>
           </div>
-          <div class="progress-text" id="progressText">
-            Question 1 of ${this.questionService.getAllQuestions().length}
+        </div>
+
+        <!-- Question Card -->
+        <div class="question-card" id="questionCard">
+          <div class="question-content" id="questionContent">
+            <!-- Question content will be injected here -->
+          </div>
+
+          <!-- Answer Options -->
+          <div class="answer-options-grid" id="answerOptions">
+            <!-- Options will be injected here -->
           </div>
         </div>
 
-        <!-- Question Navigation -->
-        <div class="question-navigation" id="questionNav">
-          <button id="prevBtn" class="nav-btn" disabled>Previous</button>
-          <div class="question-indicator" id="questionIndicator"></div>
-          <button id="nextBtn" class="nav-btn">Next</button>
-        </div>
+        <!-- Navigation & Controls -->
+        <div class="quiz-controls-bar">
+          <button id="prevBtn" class="nav-btn outline" disabled>
+            <span class="icon">←</span> Previous
+          </button>
+          
+          <div class="control-actions">
+            <button id="clearAnswerBtn" class="action-link">Clear</button>
+            <button id="flagQuestionBtn" class="action-link">Flag</button>
+          </div>
 
-        <!-- Question Content -->
-        <div class="question-content" id="questionContent">
-          <!-- Question will be rendered here -->
+          <button id="nextBtn" class="nav-btn primary">
+            Next <span class="icon">→</span>
+          </button>
         </div>
+        
+        <!-- Question Map (Bottom) -->
+        <div class="question-map-web" id="questionIndicator"></div>
 
-        <!-- Answer Options -->
-        <div class="answer-options" id="answerOptions">
-          <!-- Answer options will be rendered here -->
-        </div>
-
-        <!-- Quiz Controls -->
-        <div class="quiz-controls">
-          <button id="clearAnswerBtn" class="btn btn-secondary">Clear Answer</button>
-          <button id="flagQuestionBtn" class="btn btn-warning">Flag for Review</button>
-          <div class="control-spacer"></div>
-          <button id="submitQuizBtn" class="btn btn-success">Submit Quiz</button>
-        </div>
-
-  <!-- Pause Overlay -->
-  <div class="pause-overlay hidden" id="pauseOverlay">
-          <div class="pause-content">
+        <!-- Pause Overlay -->
+        <div class="pause-overlay hidden" id="pauseOverlay">
+          <div class="pause-card">
             <h2>Quiz Paused</h2>
-            <p>Click Resume to continue the quiz</p>
+            <p>Take a break! Click Resume when you're ready.</p>
+            <button id="resumeOverlayBtn" class="btn btn-primary btn-lg">Resume Quiz</button>
           </div>
         </div>
       </div>
@@ -87,17 +98,19 @@ export class QuizRenderer {
     const prevBtn = DOMHelpers.getElementById('prevBtn');
     const nextBtn = DOMHelpers.getElementById('nextBtn');
     
-    this.eventManager.on(prevBtn, 'click', () => this.previousQuestion());
-    this.eventManager.on(nextBtn, 'click', () => this.nextQuestion());
+    if (prevBtn) this.eventManager.on(prevBtn, 'click', () => this.previousQuestion());
+    if (nextBtn) this.eventManager.on(nextBtn, 'click', () => this.nextQuestion());
 
     // Control buttons
     const clearBtn = DOMHelpers.getElementById('clearAnswerBtn');
     const flagBtn = DOMHelpers.getElementById('flagQuestionBtn');
     const submitBtn = DOMHelpers.getElementById('submitQuizBtn');
     
-    this.eventManager.on(clearBtn, 'click', () => this.clearAnswer());
-    this.eventManager.on(flagBtn, 'click', () => this.flagQuestion());
-    this.eventManager.on(submitBtn, 'click', () => this.submitQuiz());
+    if (clearBtn) this.eventManager.on(clearBtn, 'click', () => this.clearAnswer());
+    if (flagBtn) this.eventManager.on(flagBtn, 'click', () => this.flagQuestion());
+    // submitBtn might not exist initially or might be optional
+    if (submitBtn) this.eventManager.on(submitBtn, 'click', () => this.submitQuiz());
+
 
     // Keyboard navigation
     this.eventManager.addGlobalListener(document, 'keydown', (e) => this.handleKeyboard(e));
@@ -123,10 +136,10 @@ export class QuizRenderer {
         <span class="question-section">${question.section || 'General'}</span>
       </div>
       <div class="question-text">
-        ${DOMHelpers.sanitizeHTML(question.question)}
+        ${DOMHelpers.renderMarkdown(question.question)}
       </div>
       ${question.explanation ? `<div class="question-hint hidden">
-        <strong>Hint:</strong> ${DOMHelpers.sanitizeHTML(question.explanation)}
+        <strong>Hint:</strong> ${DOMHelpers.renderMarkdown(question.explanation)}
       </div>` : ''}
     `;
 
@@ -144,35 +157,48 @@ export class QuizRenderer {
   /**
    * Render answer options
    */
+  /**
+   * Render answer options with enhanced styling
+   */
   renderAnswerOptions(question) {
     const answerOptions = DOMHelpers.getElementById('answerOptions');
     const currentAnswer = this.questionService.getUserAnswer(this.questionService.currentQuestionIndex);
 
     answerOptions.innerHTML = question.options.map((option, index) => `
-      <div class="answer-option ${currentAnswer === index ? 'selected' : ''}" 
-           data-index="${index}">
-        <label class="answer-label">
-          <input type="radio" 
-                 name="answer" 
-                 value="${index}" 
-                 ${currentAnswer === index ? 'checked' : ''}
-                 class="answer-input">
-          <span class="answer-letter">${String.fromCharCode(65 + index)}</span>
-          <span class="answer-text">${DOMHelpers.sanitizeHTML(option)}</span>
-        </label>
+      <div class="answer-card ${currentAnswer === index ? 'selected' : ''}" 
+           data-index="${index}"
+           role="button"
+           tabindex="0"
+           aria-pressed="${currentAnswer === index}">
+        
+        <div class="answer-indicator">
+          <span class="key-hint">${index + 1}</span>
+          <span class="letter-badge">${String.fromCharCode(65 + index)}</span>
+        </div>
+        
+        <div class="answer-content">
+          ${DOMHelpers.renderMarkdown(option)}
+        </div>
+        
+        <input type="radio" 
+               name="answer" 
+               value="${index}" 
+               ${currentAnswer === index ? 'checked' : ''}
+               class="visually-hidden">
       </div>
     `).join('');
 
-    // Add event listeners to answer options
-    const options = answerOptions.querySelectorAll('.answer-option');
+    // Add event listeners to answer cards
+    const options = answerOptions.querySelectorAll('.answer-card');
     options.forEach((option, index) => {
       this.eventManager.on(option, 'click', () => this.selectAnswer(index));
-    });
-
-    // Add event listeners to radio inputs
-    const inputs = answerOptions.querySelectorAll('.answer-input');
-    inputs.forEach((input, index) => {
-      this.eventManager.on(input, 'change', () => this.selectAnswer(index));
+      // Add keyboard support for the card itself
+      this.eventManager.on(option, 'keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.selectAnswer(index);
+        }
+      });
     });
   }
 
@@ -212,14 +238,18 @@ export class QuizRenderer {
     if (this.isPaused) return;
 
     // Remove previous selection
-    const options = this.container.querySelectorAll('.answer-option');
-    options.forEach(option => option.classList.remove('selected'));
+    const options = this.container.querySelectorAll('.answer-card');
+    options.forEach(option => {
+      option.classList.remove('selected');
+      option.setAttribute('aria-pressed', 'false');
+    });
 
     // Add selection to clicked option
     const selectedOption = this.container.querySelector(`[data-index="${answerIndex}"]`);
     if (selectedOption) {
       selectedOption.classList.add('selected');
-      const input = selectedOption.querySelector('.answer-input');
+      selectedOption.setAttribute('aria-pressed', 'true');
+      const input = selectedOption.querySelector('input[type="radio"]');
       if (input) input.checked = true;
     }
 
@@ -240,7 +270,7 @@ export class QuizRenderer {
 
     // Auto-advance if configured
     if (this.config.autoAdvance && this.questionService.hasNextQuestion()) {
-      setTimeout(() => this.nextQuestion(), 1000);
+      setTimeout(() => this.nextQuestion(), 800);
     }
   }
 
@@ -251,10 +281,11 @@ export class QuizRenderer {
     if (this.isPaused) return;
 
     // Clear selection in UI
-    const options = this.container.querySelectorAll('.answer-option');
+    const options = this.container.querySelectorAll('.answer-card');
     options.forEach(option => {
       option.classList.remove('selected');
-      const input = option.querySelector('.answer-input');
+      option.setAttribute('aria-pressed', 'false');
+      const input = option.querySelector('input[type="radio"]');
       if (input) input.checked = false;
     });
 

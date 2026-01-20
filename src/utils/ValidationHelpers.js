@@ -77,7 +77,7 @@ export class ValidationHelpers {
   }
 
   /**
-   * Validate CSV data structure
+   * Validate CSV data structure with flexible header support
    */
   static validateCSVData(data) {
     const errors = [];
@@ -87,33 +87,73 @@ export class ValidationHelpers {
       return { isValid: false, errors };
     }
     
-    // Check headers
-    const expectedHeaders = ['Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer'];
-    const headers = Object.keys(data[0]);
+    // Normalize string: lowercase, remove special chars
+    const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
     
-    expectedHeaders.forEach(header => {
-      if (!headers.includes(header)) {
-        errors.push(`Missing required column: ${header}`);
+    // Define required fields and their possible aliases
+    const fieldMappings = {
+      'Question': ['question', 'questiontext', 'text', 'problem'],
+      'Option A': ['optiona', 'option_a', 'choicea', 'a', 'option1'],
+      'Option B': ['optionb', 'option_b', 'choiceb', 'b', 'option2'],
+      'Option C': ['optionc', 'option_c', 'choicec', 'c', 'option3'],
+      'Option D': ['optiond', 'option_d', 'choiced', 'd', 'option4'],
+      'Correct Answer': ['correctanswer', 'correct_answer', 'answer', 'correct', 'solution', 'key']
+    };
+
+    const headers = Object.keys(data[0]);
+    const normalizedHeaders = headers.map(h => ({ original: h, normalized: normalize(h) }));
+    
+    // Check if required fields exist
+    const columnMap = {}; // Maps required field -> actual header in CSV
+    
+    Object.entries(fieldMappings).forEach(([field, aliases]) => {
+      // 1. Check exact match first
+      let match = headers.find(h => h === field);
+      
+      // 2. Check aliases match (normalized)
+      if (!match) {
+        const fieldNorm = normalize(field);
+        match = headers.find(h => {
+          const hNorm = normalize(h);
+          return hNorm === fieldNorm || aliases.includes(hNorm);
+        });
+      }
+      
+      if (match) {
+        columnMap[field] = match;
+      } else {
+        errors.push(`Missing required column: ${field} (or valid alias)`);
       }
     });
+    
+    if (errors.length > 0) {
+      return { isValid: false, errors };
+    }
     
     // Validate each row
     data.forEach((row, index) => {
       const rowErrors = [];
+      const getVal = (field) => row[columnMap[field]];
       
-      if (!row.Question || row.Question.trim() === '') {
+      const question = getVal('Question');
+      if (!question || String(question).trim() === '') {
         rowErrors.push(`Row ${index + 1}: Question is required`);
       }
       
-      const options = [row['Option A'], row['Option B'], row['Option C'], row['Option D']];
-      const validOptions = options.filter(opt => opt && opt.trim() !== '');
+      const options = [
+        getVal('Option A'), 
+        getVal('Option B'), 
+        getVal('Option C'), 
+        getVal('Option D')
+      ];
+      const validOptions = options.filter(opt => opt && String(opt).trim() !== '');
       
       if (validOptions.length < 2) {
         rowErrors.push(`Row ${index + 1}: At least 2 options are required`);
       }
       
-      const correctAnswer = row['Correct Answer'];
-      if (!correctAnswer || !['A', 'B', 'C', 'D'].includes(correctAnswer.toUpperCase())) {
+      const correctAnswer = getVal('Correct Answer');
+      if (!correctAnswer || !['A', 'B', 'C', 'D'].includes(String(correctAnswer).toUpperCase())) {
         rowErrors.push(`Row ${index + 1}: Correct answer must be A, B, C, or D`);
       }
       

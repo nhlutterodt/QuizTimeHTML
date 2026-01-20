@@ -147,20 +147,20 @@ export class QuestionSchema {
       type: ['type', 'question_type', 'format', 'style'],
       
       // Options mappings
-      option_a: ['option_a', 'a', 'choice_a', 'answer_a', 'option1'],
-      option_b: ['option_b', 'b', 'choice_b', 'answer_b', 'option2'],
-      option_c: ['option_c', 'c', 'choice_c', 'answer_c', 'option3'],
-      option_d: ['option_d', 'd', 'choice_d', 'answer_d', 'option4'],
-      option_e: ['option_e', 'e', 'choice_e', 'answer_e', 'option5'],
+      option_a: ['option_a', 'a', 'choice_a', 'answer_a', 'option1', 'optiona'],
+      option_b: ['option_b', 'b', 'choice_b', 'answer_b', 'option2', 'optionb'],
+      option_c: ['option_c', 'c', 'choice_c', 'answer_c', 'option3', 'optionc'],
+      option_d: ['option_d', 'd', 'choice_d', 'answer_d', 'option4', 'optiond'],
+      option_e: ['option_e', 'e', 'choice_e', 'answer_e', 'option5', 'optione'],
       
       // Correct answer mappings
-      correct_answer: ['correct_answer', 'correct', 'answer', 'solution', 'key'],
+      correct_answer: ['correct_answer', 'correct', 'answer', 'solution', 'key', 'correctanswer'],
       
       // Metadata mappings
-      category: ['category', 'subject', 'topic', 'domain', 'area'],
+      category: ['category', 'subject', 'topic', 'domain', 'area', 'section'],
       difficulty: ['difficulty', 'level', 'complexity', 'grade'],
       points: ['points', 'score', 'weight', 'value', 'marks'],
-      time_limit: ['time_limit', 'time', 'duration', 'seconds', 'timeout'],
+      time_limit: ['time_limit', 'time', 'duration', 'seconds', 'timeout', 'timelimit'],
       explanation: ['explanation', 'rationale', 'why', 'reason', 'detail'],
       
       // Extended fields

@@ -1,0 +1,62 @@
+{
+  "records": {
+    "2e3fca24-0466-4fd6-9398-bd4bdb4e5bca": {
+      "uploadId": "2e3fca24-0466-4fd6-9398-bd4bdb4e5bca",
+      "status": "completed",
+      "completedAt": "2026-01-20T21:31:24.214Z",
+      "response": {
+        "uploadId": "2e3fca24-0466-4fd6-9398-bd4bdb4e5bca",
+        "summary": {
+          "processed": 20,
+          "added": 1,
+          "updated": 0,
+          "skipped": 19,
+          "errors": []
+        },
+        "detailsPerFile": [
+          {
+            "filename": "demo_questions.csv",
+            "size": 2100,
+            "processed": 20,
+            "added": 1,
+            "updated": 0,
+            "skipped": 19,
+            "errors": [],
+            "hash": "89c1eb9bf33ecbce4c0b9193a826c5ea2b6c128bbc0c8baddb66789683b37419"
+          }
+        ],
+        "questionBankStats": {
+          "totalQuestions": 24,
+          "totalUploads": 30
+        },
+        "idempotent": false
+      },
+      "options": {
+        "mergeStrategy": "skip",
+        "strictness": "lenient",
+        "owner": "user",
+        "tags": [],
+        "autoCorrect": true,
+        "uploadId": "2e3fca24-0466-4fd6-9398-bd4bdb4e5bca",
+        "preset": "auto"
+      },
+      "files": [
+        {
+          "filename": "demo_questions.csv",
+          "size": 2100,
+          "processed": 20,
+          "added": 1,
+          "updated": 0,
+          "skipped": 19,
+          "errors": [],
+          "hash": "89c1eb9bf33ecbce4c0b9193a826c5ea2b6c128bbc0c8baddb66789683b37419"
+        }
+      ],
+      "actor": {
+        "userId": "anonymous",
+        "sessionId": "anonymous"
+      }
+    }
+  },
+  "lastUpdated": "2026-01-20T21:31:24.214Z"
+}

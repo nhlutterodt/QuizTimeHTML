@@ -1495,62 +1495,11 @@
         "skipped": 10,
         "errors": []
       }
-    },
-    {
-      "uploadId": "50abd3de-cfef-4eea-959f-834067323ad3",
-      "timestamp": "2026-01-20T21:37:21.585Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
-    },
-    {
-      "uploadId": "27645bad-601c-41f5-9677-afee127583a7",
-      "timestamp": "2026-01-20T21:37:55.348Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
-    },
-    {
-      "uploadId": "6df40d88-8413-485e-a883-27d578c13973",
-      "timestamp": "2026-01-20T22:01:23.245Z",
-      "userId": "system",
-      "filesCount": 1,
-      "options": {
-        "mergeStrategy": "skip",
-        "type": "migration"
-      },
-      "summary": {
-        "processed": 10,
-        "added": 0,
-        "updated": 0,
-        "skipped": 10,
-        "errors": []
-      }
     }
   ],
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2026-01-20T22:01:23.245Z",
+    "lastUpdated": "2026-01-20T21:36:28.795Z",
     "totalQuestions": 24,
     "created": "2025-09-09T00:00:00.000Z",
     "uploads": [

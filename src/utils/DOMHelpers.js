@@ -113,4 +113,59 @@ export class DOMHelpers {
   static deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
+
+  /**
+   * Render Markdown text to HTML with sanitization
+   */
+  static renderMarkdown(text) {
+    if (!text) return '';
+
+    // Check if marked and DOMPurify are available
+    if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+      console.warn('Marked or DOMPurify not loaded, falling back to simple sanitization');
+      return this.sanitizeHTML(text);
+    }
+
+    try {
+      // Parse markdown
+      const rawHtml = marked.parse(text);
+      // Sanitize the resulting HTML
+      return DOMPurify.sanitize(rawHtml, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'br', 'span', 'img'],
+        ALLOWED_ATTR: ['href', 'target', 'src', 'alt', 'class']
+      });
+    } catch (error) {
+      console.error('Error rendering markdown:', error);
+      return this.sanitizeHTML(text);
+    }
+  }
+
+  /**
+   * Sanitize HTML content to prevent XSS (wrapper for DOMPurify if available)
+   */
+  static sanitizeHTML(html) {
+    if (!html) return '';
+    
+    if (typeof DOMPurify !== 'undefined') {
+      return DOMPurify.sanitize(html);
+    }
+    
+    const div = document.createElement('div');
+    div.textContent = html;
+    return div.innerHTML;
+  }
+  /**
+   * Escape HTML special characters
+   */
+  static escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
 }

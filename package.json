@@ -3,10 +3,10 @@
   "type": "module",
   "version": "2.0.0",
   "description": "Enhanced Quiz Server with OpenAI integration and user management",
-  "main": "server.js",
+  "main": "server.cjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node server.cjs",
+    "dev": "node --watch server.cjs",
     "test": "node ./scripts/run-tests.cjs",
     "validate-schemas": "node ./scripts/validate-schemas.cjs",
     "stop": "taskkill /F /IM node.exe 2>nul || true"

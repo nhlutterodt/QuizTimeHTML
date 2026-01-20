@@ -13,7 +13,7 @@ export class ConfigurationPanel {
     this.notifications = notifications;
     this.eventManager = new EventManager();
     this.config = {};
-    this.csvData = null;
+    this.csvData = [];
     this.isVisible = false;
     
     // These will be set by QuizApp after initialization
@@ -991,7 +991,7 @@ export class ConfigurationPanel {
    */
   updateSectionFilter(csvData) {
     const sectionFilter = document.getElementById('sectionFilter');
-    const sections = [...new Set(csvData.map(row => row.Section || 'General'))];
+    const sections = [...new Set(csvData.map(row => row.section || row.category || row.Section || 'General'))];
     
     // Clear existing options except "All Sections"
     sectionFilter.innerHTML = '<option value="all">All Sections</option>';
@@ -1116,9 +1116,14 @@ export class ConfigurationPanel {
     }
 
     // Apply section filter if specified
-    const sectionFilter = this.config.sectionFilter;
+    const sectionFilter = this.config.sectionFilter || // Handle case where property name might vary
+                          document.getElementById('sectionFilter')?.value; 
+                          
     if (sectionFilter && sectionFilter !== 'all') {
-      return this.csvData.filter(q => q.Section === sectionFilter).length;
+      return this.csvData.filter(q => {
+        const section = q.section || q.category || q.Section || 'General';
+        return section === sectionFilter;
+      }).length;
     }
 
     return this.csvData.length;

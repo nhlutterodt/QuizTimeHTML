@@ -9,7 +9,8 @@ export class QuestionService {
     this.questionManager = new IntegratedQuestionManager(storageService);
     this.currentQuestionIndex = 0;
     this.userAnswers = [];
-    this.activeQuestions = [];
+    this.activeQuestions = []; // Repository: All loaded questions
+    this.questions = [];       // Session: Current quiz questions
     this.sectionQuestions = {};
     this.currentSection = null;
     
@@ -54,6 +55,10 @@ export class QuestionService {
    * Load questions from CSV data with enhanced integration
    */
   async loadQuestionsFromCSV(csvData, options = {}) {
+    if (!csvData) {
+      console.warn('loadQuestionsFromCSV received null/undefined data');
+      csvData = [];
+    }
     try {
       // If csvData is string, treat as CSV content
       if (typeof csvData === 'string') {
@@ -71,34 +76,42 @@ export class QuestionService {
       }
 
       // Legacy support: handle array of objects
-      const questions = csvData.map((row, index) => {
-        const options = [
-          row['Option A'],
-          row['Option B'], 
-          row['Option C'],
-          row['Option D']
-        ].filter(option => option && option.trim() !== '');
+      // Legacy support: handle array of objects
+      let questions = [];
+      const isSchemaFormat = csvData.length > 0 && (csvData[0].options && Array.isArray(csvData[0].options));
 
-        const correctLetter = row['Correct Answer']?.toUpperCase();
-        const correctAnswer = ['A', 'B', 'C', 'D'].indexOf(correctLetter);
+      if (isSchemaFormat) {
+          // Already in schema format (e.g. from API)
+          questions = csvData;
+      } else {
+        questions = csvData.map((row, index) => {
+          const options = [
+            row['Option A'] || row['OptionA'],
+            row['Option B'] || row['OptionB'], 
+            row['Option C'] || row['OptionC'],
+            row['Option D'] || row['OptionD']
+          ].filter(option => option && option.trim() !== '');
 
-        // Convert to current schema format
-        return QuestionSchema.createDefault({
-          id: index + 1,
-          question: row.Question,
-          options: options,
-          correct_answer: correctLetter,
-          category: row.Section || row.Category || 'General',
-          difficulty: row.Difficulty || 'Medium',
-          explanation: row.Explanation || '',
-          tags: row.Tags ? row.Tags.split(',').map(tag => tag.trim()) : [],
-          type: 'multiple_choice',
-          source: {
-            format: 'legacy_csv',
-            created: new Date().toISOString()
-          }
+          const correctLetter = (row['Correct Answer'] || row['CorrectAnswer'])?.toUpperCase();
+
+          // Convert to current schema format
+          return QuestionSchema.createDefault({
+            id: index + 1,
+            question: row.Question,
+            options: options,
+            correct_answer: correctLetter,
+            category: row.Section || row.Category || 'General',
+            difficulty: row.Difficulty || 'Medium',
+            explanation: row.Explanation || '',
+            tags: row.Tags ? row.Tags.split(',').map(tag => tag.trim()) : [],
+            type: 'multiple_choice',
+            source: {
+              format: 'legacy_csv',
+              created: new Date().toISOString()
+            }
+          });
         });
-      });
+      }
 
       // Load into manager
       await this.questionManager.loadFromData(questions);
@@ -155,8 +168,9 @@ export class QuestionService {
    */
   groupQuestionsBySection() {
     this.sectionQuestions = {};
-    this.questions.forEach(question => {
-      const section = question.section || 'General';
+    const questionsToGroup = this.activeQuestions || [];
+    questionsToGroup.forEach(question => {
+      const section = question.section || question.category || 'General';
       if (!this.sectionQuestions[section]) {
         this.sectionQuestions[section] = [];
       }
@@ -168,7 +182,9 @@ export class QuestionService {
    * Get questions for quiz with filtering and shuffling
    */
   getQuizQuestions(config) {
-    let selectedQuestions = [...this.questions];
+    // START FIX: Always select from ALL active questions (Repository), not current session questions
+    let selectedQuestions = [...(this.activeQuestions || [])];
+    // END FIX
 
     // Filter by section if specified
     if (config.section && config.section !== 'all') {
