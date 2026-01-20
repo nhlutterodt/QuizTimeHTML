@@ -63,6 +63,7 @@ export class QuizRenderer {
           <div class="control-actions">
             <button id="clearAnswerBtn" class="action-link">Clear</button>
             <button id="flagQuestionBtn" class="action-link">Flag</button>
+            <button id="submitQuizBtn" class="action-link">Submit</button>
           </div>
 
           <button id="nextBtn" class="nav-btn primary">
@@ -205,6 +206,9 @@ export class QuizRenderer {
   /**
    * Render question indicator (overview of all questions)
    */
+  /**
+   * Render question indicator (overview of all questions)
+   */
   renderQuestionIndicator() {
     const indicator = DOMHelpers.getElementById('questionIndicator');
     const questions = this.questionService.getAllQuestions();
@@ -214,13 +218,16 @@ export class QuizRenderer {
       const isAnswered = userAnswers[index] !== null;
       const isCurrent = index === this.questionService.currentQuestionIndex;
       const status = isAnswered ? 'answered' : 'unanswered';
+      const label = `Question ${index + 1}, ${isAnswered ? 'Answered' : 'Not answered'}${isCurrent ? ', Current Question' : ''}`;
       
       return `
-        <span class="question-dot ${status} ${isCurrent ? 'current' : ''}" 
+        <button class="question-dot ${status} ${isCurrent ? 'current' : ''}" 
               data-index="${index}" 
-              title="Question ${index + 1}${isAnswered ? ' (Answered)' : ''}">
+              title="Question ${index + 1}${isAnswered ? ' (Answered)' : ''}"
+              aria-label="${label}"
+              aria-current="${isCurrent ? 'true' : 'false'}">
           ${index + 1}
-        </span>
+        </button>
       `;
     }).join('');
 
@@ -229,6 +236,12 @@ export class QuizRenderer {
     dots.forEach((dot, index) => {
       this.eventManager.on(dot, 'click', () => this.goToQuestion(index));
     });
+
+    // Scroll current dot into view if needed
+    const currentDot = indicator.querySelector('.question-dot.current');
+    if (currentDot) {
+      currentDot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   }
 
   /**

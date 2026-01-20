@@ -19,14 +19,14 @@ export class SchemaGuideModal {
       className: 'schema-guide-modal',
       innerHTML: `
     <div class="schema-guide-backdrop"></div>
-    <div class="schema-guide-content" role="dialog" aria-modal="true">
+    <div class="schema-guide-content" role="dialog" aria-modal="true" data-element-id="schema-guide-modal">
           <header class="schema-guide-header">
             <h2>CSV Schema Guide</h2>
             <div style="display:flex;gap:8px;align-items:center">
-              <button id="exportSchemaJsonBtn" class="btn btn-primary">Export schema JSON</button>
-              <button id="schemaToggleCanonBtn" class="btn btn-secondary">Hide canonical</button>
-              <button id="openSchemaCreatorBtn" class="btn btn-outline">Create schema</button>
-              <button id="schemaGuideCloseBtn" class="btn btn-link">Close</button>
+              <button id="exportSchemaJsonBtn" class="btn btn-primary" data-element-id="guide-btn-export">Export schema JSON</button>
+              <button id="schemaToggleCanonBtn" class="btn btn-secondary" data-element-id="guide-btn-toggle-canon">Hide canonical</button>
+              <button id="openSchemaCreatorBtn" class="btn btn-outline" data-element-id="guide-btn-open-creator">Create schema</button>
+              <button id="schemaGuideCloseBtn" class="btn btn-link" data-element-id="guide-btn-close">Close</button>
             </div>
           </header>
           <section class="schema-guide-body">
@@ -58,18 +58,18 @@ id,question,type,option_a,option_b,option_c,option_d,correct_answer,category,dif
             <p>Use <em>header mapping</em> (in advanced upload settings) to map non-standard header names to the canonical ones.</p>
 
             <h3>Canonical Schema (live)</h3>
-            <div id="schemaCanonicalContainer">Loading canonical schema...</div>
+            <div id="schemaCanonicalContainer" data-element-id="guide-container-canonical">Loading canonical schema...</div>
 
 
             <hr/>
             <h3>Quick CSV Snippet Validator</h3>
             <p>Paste a small CSV snippet below to validate rows client-side (no network calls).</p>
-            <textarea id="schemaValidatorSnippet" rows="8" style="width:100%" placeholder="id,question,option_a,option_b,correct_answer\n..."></textarea>
+            <textarea id="schemaValidatorSnippet" rows="8" style="width:100%" placeholder="id,question,option_a,option_b,correct_answer\n..." data-element-id="guide-input-snippet"></textarea>
             <div style="margin-top:8px">
-              <button id="schemaValidateBtn" class="btn btn-primary">Validate</button>
-              <button id="schemaClearBtn" class="btn btn-link">Clear</button>
+              <button id="schemaValidateBtn" class="btn btn-primary" data-element-id="guide-btn-validate">Validate</button>
+              <button id="schemaClearBtn" class="btn btn-link" data-element-id="guide-btn-clear">Clear</button>
             </div>
-            <div id="schemaValidationResult" style="margin-top:10px"></div>
+            <div id="schemaValidationResult" style="margin-top:10px" data-element-id="guide-container-result"></div>
           </section>
         </div>
       `

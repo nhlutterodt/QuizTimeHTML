@@ -145,6 +145,14 @@ const uploadProcessor = require('./src/services/uploadProcessor');
 
 app.get('/api/question-bank/stats', (req,res)=>{ res.json({ totalQuestions: questionBank.questions.length, totalUploads: questionBank.uploads.length }); });
 
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString() 
+  });
+});
+
 app.use(express.static(path.join(__dirname)));
 
 // Validate OpenAI API key by making a lightweight test request

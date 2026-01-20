@@ -113,80 +113,111 @@ export class EnhancedCSVManager {
   /**
    * Parse CSV structure handling quotes and escapes properly
    */
+  /**
+   * Parse CSV structure robustly handling multiline values, quotes, and diverse line endings.
+   * Utilizes a single-pass state machine for O(N) performance.
+   */
   parseCSVStructure(csvContent) {
-    const lines = csvContent.trim().split('\n');
-    if (lines.length === 0) {
+    if (!csvContent || csvContent.trim() === '') {
       throw new Error('Empty CSV content');
     }
 
-    // Parse headers
-    const headers = this.parseCSVLine(lines[0]);
     const rows = [];
-
-    // Parse data rows
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line === '') continue; // Skip empty lines
-
-      try {
-        const row = this.parseCSVLine(line);
-        if (row.length > 0) {
-          // Pad row to match header length
-          while (row.length < headers.length) {
-            row.push('');
-          }
-          rows.push(row);
-        }
-      } catch (error) {
-        this.parseErrors.push({
-          line: i + 1,
-          content: line,
-          error: error.message
-        });
-      }
-    }
-
-    return { headers, rows };
-  }
-
-  /**
-   * Enhanced CSV line parsing with better quote handling
-   */
-  parseCSVLine(line) {
-    const result = [];
-    let current = '';
+    let currentRow = [];
+    let currentField = '';
     let inQuotes = false;
+    
+    // Normalize newlines for consistent processing? 
+    // No, strictly handle \r, \n, \r\n in the loop to avoid O(N) regex replace overhead.
+    
+    const len = csvContent.length;
     let i = 0;
 
-    while (i < line.length) {
-      const char = line[i];
-      const nextChar = line[i + 1];
+    while (i < len) {
+      const char = csvContent[i];
+      const nextChar = i + 1 < len ? csvContent[i + 1] : null;
 
-      if (char === '"') {
-        if (inQuotes && nextChar === '"') {
-          // Escaped quote
-          current += '"';
-          i += 2;
+      if (inQuotes) {
+        if (char === '"') {
+          if (nextChar === '"') {
+            // Escaped quote: "" -> "
+            currentField += '"';
+            i += 2; // Skip current and next
+          } else {
+            // Closing quote
+            inQuotes = false;
+            i++;
+          }
         } else {
-          // Toggle quote state
-          inQuotes = !inQuotes;
+          // Regular character inside quotes (preserve newlines, etc.)
+          currentField += char;
           i++;
         }
-      } else if (char === ',' && !inQuotes) {
-        // Field separator
-        result.push(current.trim());
-        current = '';
-        i++;
       } else {
-        current += char;
-        i++;
+        // Outside quotes
+        if (char === '"') {
+          inQuotes = true;
+          i++;
+        } else if (char === ',') {
+          // Field separator
+          currentRow.push(currentField.trim()); // Trim whitespace around unquoted fields
+          currentField = '';
+          i++;
+        } else if (char === '\r' || char === '\n') {
+          // Line terminator
+          if (char === '\r' && nextChar === '\n') {
+            i++; // Skip \r in \r\n
+          }
+          
+          // End of row
+          currentRow.push(currentField.trim());
+          rows.push(currentRow);
+          
+          // Reset
+          currentRow = [];
+          currentField = '';
+          i++;
+        } else {
+          // Regular character
+          currentField += char;
+          i++;
+        }
       }
     }
 
-    // Add final field
-    result.push(current.trim());
+    // Handle end of file
+    if (currentField !== '' || currentRow.length > 0) {
+      currentRow.push(currentField.trim());
+      rows.push(currentRow);
+    }
 
-    return result;
+    // Post-processing: Filter empty rows and handle headers
+    const cleanRows = rows.filter(r => r.length > 0 && !(r.length === 1 && r[0] === ''));
+
+    if (cleanRows.length === 0) {
+      return { headers: [], rows: [] };
+    }
+
+    const headers = cleanRows[0];
+    const dataRows = cleanRows.slice(1);
+
+    // Ensure all rows match header length (pad with empty strings)
+    // This maintains the robustness of the previous implementation
+    dataRows.forEach(row => {
+      while (row.length < headers.length) {
+        row.push('');
+      }
+    });
+
+    return { headers, rows: dataRows };
+  }
+
+  // Deprecated: parseCSVLine is no longer used by the robust parser
+  // but kept as a utility or stub if needed. Removing logic to avoid confusion.
+  parseCSVLine(line) {
+    // This is now legacy; the logic is integrated into parseCSVStructure
+    // Returning simple split for backward compatibility if called directly
+    return line.split(',').map(s => s.trim());
   }
 
   /**

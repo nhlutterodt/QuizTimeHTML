@@ -17,33 +17,33 @@ export class SchemaCreator {
       className: 'schema-guide-modal schema-creator open',
       innerHTML: `
         <div class="schema-guide-backdrop"></div>
-        <div class="schema-guide-content" role="dialog" aria-modal="true">
+        <div class="schema-guide-content" role="dialog" aria-modal="true" data-element-id="schema-creator-modal">
           <header class="schema-header header-row">
             <h3>Create CSV Schema</h3>
             <div style="margin-left:auto;display:flex;gap:8px">
-              <select id="schemaPresetSelect" class="small">
+              <select id="schemaPresetSelect" class="small" data-element-id="schema-select-preset">
                 <option value="auto">Auto</option>
                 <option value="multiple_choice">Multiple Choice</option>
                 <option value="short_answer">Short Answer</option>
                 <option value="true_false">True/False</option>
                 <option value="numeric">Numeric</option>
               </select>
-              <button id="schemaCreatorClose" class="btn btn-link">Close</button>
+              <button id="schemaCreatorClose" class="btn btn-link" data-element-id="schema-btn-close">Close</button>
             </div>
           </header>
           <section class="schema-guide-body">
             <p class="small">Paste a CSV header row or a small CSV sample. The tool will extract headers and let you map them to canonical fields.</p>
-            <textarea id="schemaSampleInput" rows="6" style="width:100%" placeholder="id,question,option_a,option_b,correct_answer\n1,What is 2+2?,1,2,D"></textarea>
+            <textarea id="schemaSampleInput" rows="6" style="width:100%" placeholder="id,question,option_a,option_b,correct_answer\n1,What is 2+2?,1,2,D" data-element-id="schema-input-sample"></textarea>
 
             <div class="mapping-actions">
-              <button id="schemaExtractHeadersBtn" class="btn btn-primary">Extract headers</button>
-              <button id="schemaValidateWithMapBtn" class="btn btn-secondary">Validate sample</button>
-              <button id="schemaExportMapBtn" class="btn btn-outline">Export headersMap</button>
+              <button id="schemaExtractHeadersBtn" class="btn btn-primary" data-element-id="schema-btn-extract">Extract headers</button>
+              <button id="schemaValidateWithMapBtn" class="btn btn-secondary" data-element-id="schema-btn-validate">Validate sample</button>
+              <button id="schemaExportMapBtn" class="btn btn-outline" data-element-id="schema-btn-export">Export headersMap</button>
             </div>
 
-            <div id="schemaMappingContainer" style="margin-top:10px"></div>
+            <div id="schemaMappingContainer" style="margin-top:10px" data-element-id="schema-container-mapping"></div>
 
-            <div id="schemaCreatorResult" style="margin-top:12px"></div>
+            <div id="schemaCreatorResult" style="margin-top:12px" data-element-id="schema-container-result"></div>
           </section>
         </div>
       `

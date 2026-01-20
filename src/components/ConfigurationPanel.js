@@ -46,21 +46,21 @@ export class ConfigurationPanel {
    */
   render() {
     this.container.innerHTML = `
-      <div class="config-panel" id="configPanel">
+      <div class="config-panel" id="configPanel" data-element-id="config-panel">
         <div class="config-header">
           <h2>Quiz Configuration</h2>
-          <button type="button" class="close-btn" id="closeConfig">×</button>
+          <button type="button" class="close-btn" id="closeConfig" data-element-id="config-btn-close">×</button>
         </div>
         
         <div class="config-content">
           <!-- Multi-CSV Upload Section -->
-          <div class="config-section">
+          <div class="config-section" data-element-id="config-section-source">
             <h3>Question Source</h3>
             
             <!-- Upload Mode Toggle -->
             <div class="form-group">
               <label class="upload-mode-toggle">
-                <input type="checkbox" id="multiUploadMode"> Enable Multiple CSV Upload
+                <input type="checkbox" id="multiUploadMode" data-element-id="config-toggle-multi-upload"> Enable Multiple CSV Upload
               </label>
               <small class="help-text">Upload multiple CSV files to build a question bank</small>
             </div>
@@ -69,25 +69,25 @@ export class ConfigurationPanel {
             <div id="singleUploadSection" class="upload-section">
               <div class="form-group">
                 <label for="csvFile">Upload CSV File:</label>
-                <input type="file" id="csvFile" accept=".csv" class="form-control">
+                <input type="file" id="csvFile" accept=".csv" class="form-control" data-element-id="config-input-csv-file">
                 <small class="help-text">CSV should contain: Question, Option A, Option B, Option C, Option D, Correct Answer</small>
               </div>
-              <div id="csvStatus" class="status-message"></div>
+              <div id="csvStatus" class="status-message" data-element-id="config-status-csv"></div>
             </div>
 
             <!-- Multiple CSV Upload -->
             <div id="multiUploadSection" class="upload-section hidden">
               <!-- Upload Limits Display -->
               <div class="upload-limits">
-                <span class="limit-text" id="uploadLimitsText">Max 5 files, 10MB total, 1000 rows per file</span>
+                <span class="limit-text" id="uploadLimitsText" data-element-id="config-text-limits">Max 5 files, 10MB total, 1000 rows per file</span>
               </div>
 
               <!-- Drag & Drop Zone -->
-              <div class="csv-drop-zone" id="csvDropZone">
+              <div class="csv-drop-zone" id="csvDropZone" data-element-id="config-dropzone-csv">
                 <div class="drop-zone-content">
                   <div class="drop-icon">📁</div>
-                  <p>Drag & drop CSV files here or <span class="browse-link" id="browseCsvs">browse files</span></p>
-                  <input type="file" id="multiCsvFiles" accept=".csv" multiple class="hidden">
+                  <p>Drag & drop CSV files here or <span class="browse-link" id="browseCsvs" data-element-id="config-link-browse">browse files</span></p>
+                  <input type="file" id="multiCsvFiles" accept=".csv" multiple class="hidden" data-element-id="config-input-multi-csv">
                 </div>
               </div>
 
@@ -95,7 +95,7 @@ export class ConfigurationPanel {
               <div class="upload-options">
                 <div class="form-group">
                   <label for="mergeStrategy">Merge Strategy:</label>
-                  <select id="mergeStrategy" class="form-control">
+                  <select id="mergeStrategy" class="form-control" data-element-id="config-select-merge-strategy">
                     <option value="skip">Skip duplicates (default)</option>
                     <option value="overwrite">Overwrite existing</option>
                     <option value="force">Create new (force)</option>
@@ -104,14 +104,14 @@ export class ConfigurationPanel {
                 </div>
                 <div class="form-group">
                   <label for="uploadStrictness">Validation Mode:</label>
-                  <select id="uploadStrictness" class="form-control">
+                  <select id="uploadStrictness" class="form-control" data-element-id="config-select-validation-mode">
                     <option value="lenient">Lenient (skip invalid rows)</option>
                     <option value="strict">Strict (reject file on error)</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="uploadPresetSelect">Schema Preset:</label>
-                  <select id="uploadPresetSelect" class="form-control">
+                  <select id="uploadPresetSelect" class="form-control" data-element-id="config-select-schema-preset">
                     <option value="auto">Auto (detect)</option>
                     <option value="multiple_choice">Multiple Choice</option>
                     <option value="short_answer">Short Answer</option>
@@ -121,25 +121,25 @@ export class ConfigurationPanel {
                 </div>
                 <div class="form-group">
                   <label for="headersMapText">Optional headers map (JSON)</label>
-                  <textarea id="headersMapText" rows="3" class="form-control" placeholder='{"Q":"question","A":"option_a","B":"option_b"}'></textarea>
-                  <div style="margin-top:6px;font-size:0.9em;color:#666">Or upload a JSON file: <input type="file" id="headersMapFile" accept="application/json" style="display:inline-block;margin-left:6px"/></div>
+                  <textarea id="headersMapText" rows="3" class="form-control" placeholder='{"Q":"question","A":"option_a","B":"option_b"}' data-element-id="config-input-headers-map"></textarea>
+                  <div style="margin-top:6px;font-size:0.9em;color:#666">Or upload a JSON file: <input type="file" id="headersMapFile" accept="application/json" style="display:inline-block;margin-left:6px" data-element-id="config-input-headers-file"/></div>
                 </div>
               </div>
 
               <!-- File Preview Section -->
-              <div id="filePreviewSection" class="file-preview-section hidden">
+              <div id="filePreviewSection" class="file-preview-section hidden" data-element-id="config-section-preview">
                 <h4>File Previews</h4>
-                <div id="filePreviewList" class="file-preview-list"></div>
+                <div id="filePreviewList" class="file-preview-list" data-element-id="config-list-previews"></div>
                 
                 <!-- Action Buttons -->
                 <div class="upload-actions">
-                  <button type="button" id="clearFiles" class="btn btn-secondary">Clear All</button>
-                  <button type="button" id="uploadFiles" class="btn btn-primary" disabled>Upload to Question Bank</button>
+                  <button type="button" id="clearFiles" class="btn btn-secondary" data-element-id="config-btn-clear-files">Clear All</button>
+                  <button type="button" id="uploadFiles" class="btn btn-primary" disabled data-element-id="config-btn-upload-files">Upload to Question Bank</button>
                 </div>
               </div>
 
               <!-- Upload Progress -->
-              <div id="uploadProgress" class="upload-progress hidden">
+              <div id="uploadProgress" class="upload-progress hidden" data-element-id="config-progress-upload">
                 <div class="upload-progress-bar">
                   <div class="upload-progress-fill" id="progressFill"></div>
                 </div>
@@ -147,28 +147,28 @@ export class ConfigurationPanel {
               </div>
 
               <!-- Upload Results -->
-              <div id="uploadResults" class="upload-results hidden"></div>
+              <div id="uploadResults" class="upload-results hidden" data-element-id="config-results-upload"></div>
             </div>
           </div>
 
           <!-- Question Bank Statistics -->
-          <div class="config-section">
+          <div class="config-section" data-element-id="config-section-stats">
             <h3>Question Bank Status</h3>
-            <div id="questionBankStats" class="question-bank-stats">
+            <div id="questionBankStats" class="question-bank-stats" data-element-id="config-stats-display">
               <div class="stats-loading">Loading question bank statistics...</div>
             </div>
             <div class="form-group">
-              <button type="button" id="refreshStats" class="btn btn-secondary">Refresh Statistics</button>
-              <button type="button" id="exportQuestionBank" class="btn btn-outline">Export Question Bank</button>
+              <button type="button" id="refreshStats" class="btn btn-secondary" data-element-id="config-btn-refresh-stats">Refresh Statistics</button>
+              <button type="button" id="exportQuestionBank" class="btn btn-outline" data-element-id="config-btn-export-bank">Export Question Bank</button>
             </div>
           </div>
 
           <!-- Timer Configuration -->
-          <div class="config-section">
+          <div class="config-section" data-element-id="config-section-timer">
             <h3>Timer Settings</h3>
             <div class="form-group">
               <label for="timerMode">Timer Mode:</label>
-              <select id="timerMode" class="form-control">
+              <select id="timerMode" class="form-control" data-element-id="config-select-timer-mode">
                 <option value="none">No Timer</option>
                 <option value="exam">Exam Timer (Overall)</option>
                 <option value="section">Section Timer</option>
@@ -179,60 +179,60 @@ export class ConfigurationPanel {
             <div id="timerSettings" class="timer-settings">
               <div class="form-group" id="examTimeGroup">
                 <label for="examTime">Exam Time (minutes):</label>
-                <input type="number" id="examTime" class="form-control" min="1" max="300">
+                <input type="number" id="examTime" class="form-control" min="1" max="300" data-element-id="config-input-exam-time">
               </div>
               
               <div class="form-group" id="sectionTimeGroup">
                 <label for="sectionTime">Section Time (minutes):</label>
-                <input type="number" id="sectionTime" class="form-control" min="1" max="60">
+                <input type="number" id="sectionTime" class="form-control" min="1" max="60" data-element-id="config-input-section-time">
               </div>
               
               <div class="form-group" id="questionTimeGroup">
                 <label for="questionTime">Question Time (minutes):</label>
-                <input type="number" id="questionTime" class="form-control" min="0.5" max="10" step="0.5">
+                <input type="number" id="questionTime" class="form-control" min="0.5" max="10" step="0.5" data-element-id="config-input-question-time">
               </div>
             </div>
           </div>
 
           <!-- Quiz Settings -->
-          <div class="config-section">
+          <div class="config-section" data-element-id="config-section-quiz">
             <h3>Quiz Settings</h3>
             <div class="form-group">
               <label for="numQuestions">Number of Questions:</label>
-              <input type="number" id="numQuestions" class="form-control" min="1" max="100">
+              <input type="number" id="numQuestions" class="form-control" min="1" max="100" data-element-id="config-input-num-questions">
             </div>
             
             <div class="form-group">
               <label for="passingScore">Passing Score (%):</label>
-              <input type="number" id="passingScore" class="form-control" min="0" max="100">
+              <input type="number" id="passingScore" class="form-control" min="0" max="100" data-element-id="config-input-passing-score">
             </div>
             
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="randomize"> Randomize Questions
+                <input type="checkbox" id="randomize" data-element-id="config-checkbox-randomize"> Randomize Questions
               </label>
             </div>
             
             <div class="form-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="showCorrectAnswers"> Show Correct Answers in Results
+                <input type="checkbox" id="showCorrectAnswers" data-element-id="config-checkbox-show-answers"> Show Correct Answers in Results
               </label>
             </div>
           </div>
 
           <!-- Filtering Options -->
-          <div class="config-section">
+          <div class="config-section" data-element-id="config-section-filtering">
             <h3>Question Filtering</h3>
             <div class="form-group">
               <label for="sectionFilter">Filter by Section:</label>
-              <select id="sectionFilter" class="form-control">
+              <select id="sectionFilter" class="form-control" data-element-id="config-select-filter-section">
                 <option value="all">All Sections</option>
               </select>
             </div>
             
             <div class="form-group">
               <label for="difficultyFilter">Filter by Difficulty:</label>
-              <select id="difficultyFilter" class="form-control">
+              <select id="difficultyFilter" class="form-control" data-element-id="config-select-filter-difficulty">
                 <option value="all">All Difficulties</option>
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
@@ -243,9 +243,9 @@ export class ConfigurationPanel {
         </div>
 
         <div class="config-footer">
-          <button type="button" class="btn btn-secondary" id="resetConfig">Reset to Defaults</button>
-          <button type="button" class="btn btn-primary" id="saveConfig">Save Configuration</button>
-          <button type="button" class="btn btn-success" id="startQuiz">Start Quiz</button>
+          <button type="button" class="btn btn-secondary" id="resetConfig" data-element-id="config-btn-reset">Reset to Defaults</button>
+          <button type="button" class="btn btn-primary" id="saveConfig" data-element-id="config-btn-save">Save Configuration</button>
+          <button type="button" class="btn btn-success" id="startQuiz" data-element-id="config-btn-start">Start Quiz</button>
         </div>
       </div>
     `;

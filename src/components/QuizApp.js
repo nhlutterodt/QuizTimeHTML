@@ -73,10 +73,19 @@ export class QuizApp {
    * Initialize DOM containers
    */
   initializeContainers() {
-    // Main application container
-    this.containers.app = DOMHelpers.getElementById('quizApp') || document.body;
+    // Main application container - Get or create
+    let appContainer = DOMHelpers.getElementById('quizApp');
     
-    // Create main layout if it doesn't exist
+    if (!appContainer) {
+      appContainer = document.createElement('div');
+      appContainer.id = 'quizApp';
+      appContainer.className = 'quiz-application';
+      document.body.appendChild(appContainer);
+    }
+    
+    this.containers.app = appContainer;
+    
+    // Create main layout content if it doesn't exist
     if (!DOMHelpers.getElementById('configurationContainer')) {
       this.createMainLayout();
     }
@@ -93,8 +102,8 @@ export class QuizApp {
    * Create main application layout
    */
   createMainLayout() {
+    // Note: The outer #quizApp container is already created in initializeContainers
     const layout = `
-      <div id="quizApp" class="quiz-application">
         <!-- Header -->
         <header class="app-header">
           <h1>Quiz Application</h1>
@@ -110,29 +119,28 @@ export class QuizApp {
         </header>
 
         <!-- Navigation -->
-  <nav id="navigationContainer" class="quiz-navigation hidden"></nav>
+        <nav id="navigationContainer" class="quiz-navigation hidden"></nav>
 
         <!-- Main Content -->
         <main class="app-main">
           <!-- Configuration Panel -->
-          <div id="configurationContainer" class="container configuration-container"></div>
+          <div id="configurationContainer" class="container configuration-container" tabindex="-1"></div>
           
           <!-- Quiz Container -->
-          <div id="quizContainer" class="container quiz-container hidden"></div>
+          <div id="quizContainer" class="container quiz-container hidden" tabindex="-1"></div>
           
           <!-- Results Container -->
-          <div id="resultsContainer" class="container results-container hidden"></div>
+          <div id="resultsContainer" class="container results-container hidden" tabindex="-1"></div>
         </main>
 
         <!-- Status Messages -->
         <div id="statusMessages" class="status-messages"></div>
         
         <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay hidden">
+        <div id="loadingOverlay" class="loading-overlay hidden">
           <div class="loading-spinner"></div>
           <div class="loading-text">Loading...</div>
         </div>
-      </div>
     `;
 
     this.containers.app.innerHTML = layout;
@@ -727,26 +735,33 @@ export class QuizApp {
   setState(newState) {
     this.currentState = newState;
     
-    // Hide all containers
+    // Hide all containers safely (remove focus first if inside)
+    if (document.activeElement && this.containers.app.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
+
     DOMHelpers.toggleVisibility(this.containers.configuration, false);
     DOMHelpers.toggleVisibility(this.containers.quiz, false);
     DOMHelpers.toggleVisibility(this.containers.results, false);
     DOMHelpers.toggleVisibility(this.containers.nav, false);
     
-    // Show relevant container
+    // Show relevant container and manage focus
     switch (newState) {
       case 'configuration':
         DOMHelpers.toggleVisibility(this.containers.configuration, true);
+        this.containers.configuration.focus();
         break;
       case 'quiz':
         DOMHelpers.toggleVisibility(this.containers.quiz, true);
         DOMHelpers.toggleVisibility(this.containers.nav, true);
         DOMHelpers.toggleVisibility(DOMHelpers.getElementById('pauseBtn'), true);
+        this.containers.quiz.focus();
         break;
       case 'results':
         DOMHelpers.toggleVisibility(this.containers.results, true);
         DOMHelpers.toggleVisibility(DOMHelpers.getElementById('pauseBtn'), false);
         DOMHelpers.toggleVisibility(DOMHelpers.getElementById('resumeBtn'), false);
+        this.containers.results.focus();
         break;
     }
   }

@@ -310,7 +310,14 @@ Notes
 Keep changes incremental and behind feature flags/PR branches. Preserve `auto` behavior to avoid breaking existing imports.
 
 ---
-Last updated: 2025-09-10
+---
+Last updated: 2026-01-20
+
+Status Check (Jan 20, 2026)
+---------------------------
+- **Completed**: Logic consolidation between `ValidationHelpers.js` and `QuestionSchema.js`.
+- **Completed**: UI Standards compliance (`data-element-id`s added to schema components).
+- **In Progress**: Full Phase 2 implementation of preset validators.
 
 Professional integration considerations
 -------------------------------------

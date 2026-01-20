@@ -573,8 +573,26 @@ The architecture is designed for easy extension:
 
 - **New Components**: Follow the component pattern
 - **New Services**: Implement the service interface  
-- **New Providers**: Add to provider configuration
 - **New Features**: Use the event system for loose coupling
+
+---
+
+## 🎨 UI & Testing Standards
+
+### Element Identification System
+To ensure testability and stability, we use a `data-element-id` attribute system for all interactive elements.
+Format: `[context]-[type]-[name]` (e.g., `config-btn-save`, `quiz-option-a`).
+
+Please refer to `docs/UI_STANDARDS.md` for the complete guide on CSS variables, layout patterns, and ID conventions.
+
+## 💾 Data Handling
+
+### Question Service
+The `QuestionService` now supports dual data formats to maintain backward compatibility:
+1.  **Legacy CSV**: Arrays of objects with specific headers ("Option A", "Correct Answer").
+2.  **Schema Objects**: Standardized `QuestionSchema` objects used internally and by the API.
+
+The service automatically normalizes imported data into the `QuestionSchema` format.
 
 ---
 
